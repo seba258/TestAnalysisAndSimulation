@@ -12,6 +12,36 @@ from Altitude_converter import Altitude_Conversion
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 
+def open_file():
+    """Open a file for editing."""
+    filepath = askopenfilename(
+        filetypes=[("Text Files", "*.nc4"), ("All Files", "*.*")])
+
+    return filepath
+
+
+filepath = open_file()
+
+# Open data
+filename = "Data/aerosol.24h.JAN.ON.nc4"
+
+DS = xr.open_dataset(filepath)  # extract data set from netCFD file
+
+varlst = []
+datlst = []
+
+n = 0
+for i in DS.variables:
+    datlst.append(i)
+    # Filter out different pollutions
+    if i not in ['lev', 'lon', 'lat', 'ilev', 'time']:
+        varlst.append(i)
+        n += 1
+
+select = int(input("Selection: "))
+
+var = getattr(DS, varlst[select])
+
 root = tkinter.Tk()
 root.wm_title("Embedding in Tk")
 
