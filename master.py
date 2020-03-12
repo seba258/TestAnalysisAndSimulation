@@ -1,5 +1,4 @@
-import tkinter
-
+import tkinter as tk
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 # Implement the default Matplotlib key bindings.
@@ -20,28 +19,41 @@ def open_file():
     return filepath
 
 
+
+
 filepath = open_file()
 
-# Open data
-filename = "Data/aerosol.24h.JAN.ON.nc4"
+
 
 DS = xr.open_dataset(filepath)  # extract data set from netCFD file
-
-varlst = []
+#------------------------------------------------------------------------
+root = tk.Tk()
+frame = tk.Frame(root)
+frame.pack()
 datlst = []
+varlst = []
+sel = []
 
-n = 0
 for i in DS.variables:
     datlst.append(i)
     # Filter out different pollutions
-    if i not in ['lev', 'lon', 'lat', 'ilev', 'time']:
+    if i not in  ['lev','lon','lat', 'ilev', 'time']:
         varlst.append(i)
-        n += 1
+        button = tk.Button(frame,text = i,
+                       command = lambda a = i: sel.append(a))
+        button.pack(side = tk.LEFT)
 
-select = int(input("Selection: "))
+OK_button = tk.Button(frame,text = "OK",
+                      command = root.destroy)
+OK_button.pack(side = tk.BOTTOM)
+#select = int(input("Selection: "))
 
-var = getattr(DS, varlst[select])
+root.mainloop()
 
+substance = sel[-1]
+
+var = getattr(DS, substance)
+# ------------------------------------------
 root = tkinter.Tk()
 root.wm_title("Embedding in Tk")
 

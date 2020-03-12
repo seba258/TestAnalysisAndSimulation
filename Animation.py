@@ -7,6 +7,9 @@ import tkinter as tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 
+# Tkinter GUI
+Window = tk.Tk()
+
 def open_file():
     """Open a file for editing."""
     filepath = askopenfilename(
