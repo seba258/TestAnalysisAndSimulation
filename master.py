@@ -20,6 +20,25 @@ def open_file():
     return filepath
 
 
+def generate_plot(dataset, variable, level, time):
+    da = getattr(getattr(getattr(dataset, variable), "sel")(lev=level, method='nearest'), "sel")(time='2005-1-17')
+    proj = ccrs.PlateCarree()
+    fig = Figure(figsize=(5, 4), dpi=100)
+
+    # Create axes and add map
+    ax = fig.axes(projection=proj)  # create axes
+    ax.coastlines(resolution='50m')  # draw coastlines with given resolution
+
+    # Set color and scale of plot
+    cax = da[0, :, :].plot(add_colorbar=True,
+                           cmap='coolwarm',
+                           vmin=da.values.min(),
+                           vmax=da.values.max(),
+                           cbar_kwargs={'extend': 'neither'})
+
+    return fig
+
+
 filepath = open_file()
 
 # Open data
@@ -38,16 +57,12 @@ for i in DS.variables:
         varlst.append(i)
         n += 1
 
-select = int(input("Selection: "))
-
-var = getattr(DS, varlst[select])
+# INSERT BUTTONS FOR VARIABLE SELECTION HERE!
 
 root = tkinter.Tk()
 root.wm_title("Embedding in Tk")
 
-fig = Figure(figsize=(5, 4), dpi=100)
-t = np.arange(0, 3, .01)
-fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
+fig = generate_plot()
 
 canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
 canvas.draw()
@@ -56,7 +71,6 @@ canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
 toolbar = NavigationToolbar2Tk(canvas, root)
 toolbar.update()
 canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
-
 
 def on_key_press(event):
     print("you pressed {}".format(event.key))
