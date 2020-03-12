@@ -11,8 +11,8 @@ da_off = DS_off.SpeciesConc_O3  # retrieve data array containing 24h average PM2
 DS_on = xr.open_dataset(filename_on)  # extract data set from netCFD file
 da_on = DS_on.SpeciesConc_O3  # retrieve data array containing 24h average PM25 concentrations (21 days, 72 levels)
 
-pm25_gd_off = da_off.sel(lev=1, method='nearest').sel(time='2005-01-20')[0]  # select appropriate level (ground) and day
-pm25_gd_on = da_on.sel(lev=1, method='nearest').sel(time='2005-01-20')[0]  # select appropriate level (ground) and day
+pm25_gd_off = da_off.sel(lev=0.5, method='nearest').sel(time='2005-01-20')[0]  # select appropriate level (ground) and day
+pm25_gd_on = da_on.sel(lev=0.5, method='nearest').sel(time='2005-01-20')[0]  # select appropriate level (ground) and day
 
 proj = ccrs.PlateCarree()  # select projection. Only seems to work with PlateCarree though
 
