@@ -18,6 +18,23 @@ def open_file():
 
     return filepath
 
+def generate_plot(dataset, variable, level, time):
+    da = getattr(getattr(getattr(dataset, variable), "sel")(lev=level, method='nearest'), "sel")(time='2005-1-17')
+    proj = ccrs.PlateCarree()
+    fig = Figure(figsize=(5, 4), dpi=100)
+
+    # Create axes and add map
+    ax = fig.axes(projection=proj)  # create axes
+    ax.coastlines(resolution='50m')  # draw coastlines with given resolution
+
+    # Set color and scale of plot
+    cax = da[0, :, :].plot(add_colorbar=True,
+                           cmap='coolwarm',
+                           vmin=da.values.min(),
+                           vmax=da.values.max(),
+                           cbar_kwargs={'extend': 'neither'})
+
+    return fig
 
 
 
