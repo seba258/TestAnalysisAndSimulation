@@ -38,8 +38,9 @@ def Select_pollutant():
 
         # Get value of dropdown
         def dropdown_val(*args):
-            global val
+            global filepath
             val = str(tkvar.get())
+            filepath = getattr(DS, val)
 
         # Store value of dropdown
         tkvar.trace('w', dropdown_val)
@@ -66,6 +67,7 @@ def Select_pollutant():
 
     def cancel():
         window.destroy()
+        messagebox.showinfo('Error', 'No pollutant selected')
         quit()
     # Cancel and stop program
     btn_cancel = tk.Button(window, text = "    cancel    ", command = cancel)
@@ -76,7 +78,7 @@ def Select_pollutant():
 
     try:
 
-        return val
+        return filepath
     except:
         messagebox.showinfo('Error', 'No pollutant selected')
         quit()
