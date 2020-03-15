@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter.ttk import *
 import xarray as xr
 from tkinter import messagebox
+from Altitude_converter import Altitude_Conversion
 
 def Select_pollutant():
     def open_file():
