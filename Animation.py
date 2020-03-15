@@ -1,7 +1,4 @@
-import tkinter as tk
-from tkinter.filedialog import askopenfilename
 import cartopy.crs as ccrs
-import xarray as xr
 from matplotlib import pyplot as plt, animation
 from Altitude_converter import Altitude_Conversion
 from GUI import Select_pollutant

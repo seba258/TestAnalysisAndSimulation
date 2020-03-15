@@ -5,19 +5,16 @@ from matplotlib.backends.backend_tkagg import (
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 import numpy as np
-import xarray as xr
 import cartopy.crs as ccrs
-from Altitude_converter import Altitude_Conversion
-from tkinter.filedialog import askopenfilename, asksaveasfilename
 from GUI import Select_pollutant
-
+"""
 def open_file():
     """Open a file for editing."""
     filepath = askopenfilename(
         filetypes=[("Text Files", "*.nc4"), ("All Files", "*.*")])
 
     return filepath
-
+"""
 def generate_plot(dataset, variable, level, time):
     da = getattr(getattr(getattr(dataset, variable), "sel")(lev=level, method='nearest'), "sel")(time='2005-1-17')
     proj = ccrs.PlateCarree()
