@@ -14,8 +14,8 @@ def show_plot(variable, level, time):
     ax.coastlines(resolution='50m')  # draw coastlines with given resolution
 
     # Set color and scale of plot
-    da[0, :, :].plot(add_colorbar=True, cmap='coolwarm', vmin=da.values.min(), vmax=da.values.max(),
-                     cbar_kwargs={'extend': 'neither'})
+    da.plot(add_colorbar=True, cmap='coolwarm', vmin=da.values.min(), vmax=da.values.max(),
+            cbar_kwargs={'extend': 'neither'})
 
     plt.show()
 
@@ -23,6 +23,5 @@ def show_plot(variable, level, time):
 running = True
 
 while running:
-    filepath, DS = Select_pollutant()
-    print(filepath, DS)
-    show_plot(filepath, 1, '2005-1-17')
+    filepath, DS, time = Select_pollutant()
+    show_plot(filepath, 1, time)
