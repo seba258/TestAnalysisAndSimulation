@@ -1,122 +1,26 @@
-import numpy as np
-import xarray as xr
-import cartopy.crs as ccrs
-from Altitude_converter import Altitude_Conversion
-from matplotlib import pyplot as plt, animation
-import tkinter as tk
-from tkinter.filedialog import askopenfilename, asksaveasfilename
+# Importing tkinter module
+from tkinter import *
+from tkinter.ttk import *
 
+# creating Tk window
+master = Tk()
 
-def select_file():
-    # Tkinter GUI
-    window = tk.Tk()
+# setting geometry of tk window
+master.geometry("200x200")
 
-    var = tk.StringVar(window)
-    var.set("one")
+# button widget
+b1 = Button(master, text="Click me !")
+b1.place(relx=1, x=-2, y=2, anchor=NE)
 
-    w = tk.OptionMenu(window, var, "one", "two","three")
-    w.pack()
+# label widget
+l = Label(master, text="I'm a Label")
+l.place(anchor=NW)
 
-    OK_button = tk.Button(window, text="ok", command='ok')
-    OK_button.pack()
+# button widget
+b2 = Button(master, text="GFG")
+b2.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-    buttonState = tk.Checkbutton(OK_button)
-    print(buttonState)
-    window.mainloop()
-
-    return buttonState
-
-OK = False
-while not OK:
-
-
-    OK = select_file()
-    print(OK)
-
-def open_file():
-    """Open a file for editing."""
-    filepath = askopenfilename(
-        filetypes=[("Text Files", "*.nc4"), ("All Files", "*.*")])
-    
-    
-    return filepath
-
-
-filepath = open_file()
-
-
-# Open data
-filename    = "Data/aerosol.24h.JAN.ON.nc4"
-
-DS = xr.open_dataset(filepath)  # extract data set from netCFD file
-
-# ---------------------------------- Selecting variables ----------------------------------------------
-varlst = []
-datlst = []
-
-print("")
-print("Select the variable to animate: ")
-print("")
-n = 0
-for i in DS.variables:
-    datlst.append(i)
-    # Filter out different pollutions
-    if i not in  ['lev','lon','lat', 'ilev', 'time']:
-        
-        print("Press "+ str(n) + " to select "+ i)
-        varlst.append(i)
-        
-        n +=1
-        
-select = int(input("Selection: "))
-
-var = getattr(DS, varlst[select])
-
-
-# Check if there are different altitude levels
-if DS.lev.max() != DS.lev.min():
-    
-    # Ask for altitude in kilometers
-    alt = int(input("Select altitude (km): "))
-    level = Altitude_Conversion(alt)[1]
-    
-    da = getattr(getattr(DS, varlst[select]),"sel")(lev=level, method='nearest')
-
-else:
-    da = getattr(DS,varlst[select])
-
-# select projection. Only seems to work with PlateCarree though
-proj = ccrs.PlateCarree()  
-
-
-
-# Determine number of points in time
-n = da.time.size
-
-# Create subplot
-fig, ax = plt.subplots(figsize=(12,6))
-
-
-# Create axes and add map
-ax = plt.axes(projection=proj)  # create axes
-ax.coastlines(resolution='50m')  # draw coastlines with given resolution
-
-# Set color and scale of plot
-cax = da[0,:,:].plot(add_colorbar=True,
-        cmap = 'coolwarm',
-        vmin = da.values.min(),
-        vmax = da.values.max(),
-        cbar_kwargs = {'extend':'neither'})
-
-# Animation function
-def animate(frame):
-    cax.set_array(da[frame,:,:].values.flatten())
-    ax.set_title("Time = " + 
-                 str(da.coords["time"].values[frame])[:13])
-
-# Animate plots
-ani = animation.FuncAnimation(fig, animate, 
-                              frames=n, 
-                              interval = 100)
-# Show plot
-plt.show()
+# infinite loop which is required to
+# run tkinter program infinitely
+# until an interrupt occurs
+master.mainloop()

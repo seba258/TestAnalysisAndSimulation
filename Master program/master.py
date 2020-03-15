@@ -5,22 +5,18 @@ from matplotlib.backends.backend_tkagg import (
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 import numpy as np
-import xarray as xr
 import cartopy.crs as ccrs
-from Altitude_converter import Altitude_Conversion
-from tkinter.filedialog import askopenfilename, asksaveasfilename
-
-
+from GUI import Select_pollutant
+"""
 def open_file():
     """Open a file for editing."""
     filepath = askopenfilename(
         filetypes=[("Text Files", "*.nc4"), ("All Files", "*.*")])
 
     return filepath
-
-
+"""
 def generate_plot(dataset, variable, level, time):
-    da = getattr(getattr(getattr(dataset, str(variable)), "sel")(lev=level, method='nearest'), "sel")(time='2005-1-17')
+    da = getattr(getattr(getattr(dataset, variable), "sel")(lev=level, method='nearest'), "sel")(time='2005-1-17')
     proj = ccrs.PlateCarree()
     fig = Figure(figsize=(5, 4), dpi=100)
 
@@ -38,7 +34,9 @@ def generate_plot(dataset, variable, level, time):
     return fig
 
 
+""""
 filepath = open_file()
+
 
 
 DS = xr.open_dataset(filepath)  # extract data set from netCFD file
@@ -50,33 +48,29 @@ datlst = []
 varlst = []
 sel = []
 
-for i in DS.variables:
-    datlst.append(i)
-    # Filter out different pollutions
-    if i not in  ['lev','lon','lat', 'ilev', 'time']:
-        varlst.append(i)
-        button = tk.Button(frame,text = i,
-                       command = lambda a = i: sel.append(a))
-        button.pack(side = tk.LEFT)
 
 OK_button = tk.Button(frame,text = "OK",
                       command = root.destroy)
-OK_button.pack(side = tk.BOTTOM)
+OK_button.pack(side = BOTTOM)
 #select = int(input("Selection: "))
 
 root.mainloop()
 
 substance = sel[-1]
+"""
 
-var = getattr(DS, substance)
+var = Select_pollutant()
+#var = getattr(DS, substance)
+
+
+
 # ------------------------------------------
 root = tk.Tk()
 root.wm_title("Embedding in Tk")
 
-lev = 1
-t = '2005-1-17'
-
-fig = generate_plot(DS, var, lev, t)
+fig = Figure(figsize=(5, 4), dpi=100)
+t = np.arange(0, 3, .01)
+fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
 
 canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
 canvas.draw()

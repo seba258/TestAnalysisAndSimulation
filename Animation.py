@@ -1,17 +1,13 @@
-import numpy as np
-import xarray as xr
 import cartopy.crs as ccrs
-from Altitude_converter import Altitude_Conversion
 from matplotlib import pyplot as plt, animation
-import tkinter as tk
-from tkinter.filedialog import askopenfilename, asksaveasfilename
-
-
+from Altitude_converter import Altitude_Conversion
+from GUI import Select_pollutant
+"""
 # Tkinter GUI
 Window = tk.Tk()
 
 def open_file():
-    """Open a file for editing."""
+    Open a file for editing.
     filepath = askopenfilename(
         filetypes=[("Text Files", "*.nc4"), ("All Files", "*.*")])
     
@@ -49,18 +45,22 @@ select = int(input("Selection: "))
 
 var = getattr(DS, varlst[select])
 
+"""
+
+var, DS = Select_pollutant()
+
 
 # Check if there are different altitude levels
-if DS.lev.max() != DS.lev.min():
+if hasattr(var, 'lev') and (DS.lev.max() != DS.lev.min()):
     
     # Ask for altitude in kilometers
     alt = int(input("Select altitude (km): "))
     level = Altitude_Conversion(alt)[1]
     
-    da = getattr(getattr(DS, varlst[select]),"sel")(lev=level, method='nearest')
+    da = getattr(var,"sel")(lev = level, method = 'nearest')
 
 else:
-    da = getattr(DS,varlst[select])
+    da = var
 
 # select projection. Only seems to work with PlateCarree though
 proj = ccrs.PlateCarree()  
@@ -68,6 +68,7 @@ proj = ccrs.PlateCarree()
 
 
 # Determine number of points in time
+
 n = da.time.size
 
 # Create subplot
