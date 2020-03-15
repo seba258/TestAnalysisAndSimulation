@@ -3,7 +3,6 @@ import tkinter as tk
 from tkinter.ttk import *
 import xarray as xr
 from tkinter import messagebox
-from Altitude_converter import Altitude_Conversion
 
 def Select_pollutant():
     def open_file():
@@ -75,7 +74,7 @@ def Select_pollutant():
 
         # create text field for altitude
         if 'lev' in DS.coords:
-            print(DS.coords['lev'].values)
+            print(DS.coords['lev'])
 
     # Initialize window
     window = tk.Tk()
