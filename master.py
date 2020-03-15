@@ -18,8 +18,9 @@ def open_file():
 
     return filepath
 
+
 def generate_plot(dataset, variable, level, time):
-    da = getattr(getattr(getattr(dataset, variable), "sel")(lev=level, method='nearest'), "sel")(time='2005-1-17')
+    da = getattr(getattr(getattr(dataset, str(variable)), "sel")(lev=level, method='nearest'), "sel")(time='2005-1-17')
     proj = ccrs.PlateCarree()
     fig = Figure(figsize=(5, 4), dpi=100)
 
@@ -37,9 +38,7 @@ def generate_plot(dataset, variable, level, time):
     return fig
 
 
-
 filepath = open_file()
-
 
 
 DS = xr.open_dataset(filepath)  # extract data set from netCFD file
@@ -58,11 +57,11 @@ for i in DS.variables:
         varlst.append(i)
         button = tk.Button(frame,text = i,
                        command = lambda a = i: sel.append(a))
-        button.pack(side = LEFT)
+        button.pack(side = tk.LEFT)
 
 OK_button = tk.Button(frame,text = "OK",
                       command = root.destroy)
-OK_button.pack(side = BOTTOM)
+OK_button.pack(side = tk.BOTTOM)
 #select = int(input("Selection: "))
 
 root.mainloop()
@@ -71,20 +70,21 @@ substance = sel[-1]
 
 var = getattr(DS, substance)
 # ------------------------------------------
-root = tkinter.Tk()
+root = tk.Tk()
 root.wm_title("Embedding in Tk")
 
-fig = Figure(figsize=(5, 4), dpi=100)
-t = np.arange(0, 3, .01)
-fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
+lev = 1
+t = '2005-1-17'
+
+fig = generate_plot(DS, var, lev, t)
 
 canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
 canvas.draw()
-canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
+canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
 toolbar = NavigationToolbar2Tk(canvas, root)
 toolbar.update()
-canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
+canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
 
 def on_key_press(event):
@@ -101,9 +101,9 @@ def _quit():
                     # Fatal Python Error: PyEval_RestoreThread: NULL tstate
 
 
-button = tkinter.Button(master=root, text="Quit", command=_quit)
-button.pack(side=tkinter.BOTTOM)
+button = tk.Button(master=root, text="Quit", command=_quit)
+button.pack(side=tk.BOTTOM)
 
-tkinter.mainloop()
+tk.mainloop()
 # If you put root.destroy() here, it will cause an error if the window is
 # closed with the window manager.
