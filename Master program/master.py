@@ -5,8 +5,11 @@ import cartopy.crs as ccrs
 from GUI import Select_pollutant
 
 
-def show_plot(variable, level, time):
-    da = getattr(getattr(variable, "sel")(lev=level, method='nearest'), "sel")(time=time)
+def show_plot(da, level, time):
+    if level > 0:
+        da = getattr(da, "sel")(lev=level, method='nearest')
+    if len(time) > 0:
+        da = getattr(da, "sel")(time=time)
     proj = ccrs.PlateCarree()
 
     # Create axes and add map
@@ -23,5 +26,5 @@ def show_plot(variable, level, time):
 running = True
 
 while running:
-    filepath, DS, time = Select_pollutant()
-    show_plot(filepath, 1, time)
+    filepath, lev, time = Select_pollutant()
+    show_plot(filepath, lev, time)

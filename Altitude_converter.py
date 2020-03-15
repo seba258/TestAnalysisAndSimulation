@@ -14,7 +14,7 @@ def Altitude_Conversion(h):
     # Iterate through altitude table
     for i in range(len(alt_dat[:,2])-1):
         # Check if h is in interval
-        if alt_dat[i,2]>= h and alt_dat[i+1,2]<h:
+        if alt_dat[i, 2] >= h > alt_dat[i + 1, 2]:
             
             h_tab   = alt_dat[i,2]
             alt_num = alt_dat[i,1]
@@ -24,5 +24,3 @@ def Altitude_Conversion(h):
             alt_num = 1
             
     return h_tab, alt_num
-
-print(Altitude_Conversion(0))

@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter.ttk import *
 import xarray as xr
 from tkinter import messagebox
+from Altitude_converter import eta_to_altitude, altitude_to_eta
+
 
 def Select_pollutant():
     def open_file():
@@ -21,6 +23,9 @@ def Select_pollutant():
 
         global time
         time = ''
+
+        global lev
+        lev = -1  # sea level by default
 
         # Make list with variables
         varlst = []
@@ -73,8 +78,29 @@ def Select_pollutant():
             tkvar_t.trace('w', dropdown_val_t)
 
         # create text field for altitude
-        if 'lev' in DS.coords:
-            print(DS.coords['lev'])
+        if 'lev' in DS.coords and DS.coords['lev'].values.size > 1:
+            min_alt = eta_to_altitude(max(DS.coords['lev'].values))
+            max_alt = eta_to_altitude(min(DS.coords['lev'].values))
+
+            # Create tkinter variable
+            tkvar_lev = tk.DoubleVar(window)
+
+            # Instructions for slider
+            label_lev = tk.Label(window, text="Choose Altitude [km]:")
+            label_lev.grid(column=0, row=3)
+            # Create slider
+            slider_lev = tk.Scale(window, variable=tkvar_lev, from_=min_alt, to=max_alt, tickinterval=1,
+                                  length=(max_alt - min_alt) * 2)
+            slider_lev.grid(column=1, row=3)
+
+            # Get value of slider
+            def slider_val_lev(*args):
+                global lev
+                lev = altitude_to_eta(tkvar_lev.get())
+
+            # Store value of slider
+            tkvar_lev.trace('w', slider_val_lev)
+
 
     # Initialize window
     window = tk.Tk()
@@ -97,21 +123,21 @@ def Select_pollutant():
     # button to confirm selection
     btn_ok = tk.Button(window, text="   OK   ", command=window.destroy)
 
-    btn_ok.grid(column = 1, row = 3)
+    btn_ok.grid(column = 1, row = 4)
 
     def cancel():
         window.destroy()
         quit()
     # Cancel and stop program
     btn_cancel = tk.Button(window, text = "    Cancel    ", command = cancel)
-    btn_cancel.grid(column = 0, row = 3)
+    btn_cancel.grid(column = 0, row = 4)
 
     # Run window loop
     window.mainloop()
 
     try:
 
-        return filepath, DS, time
+        return [filepath, lev, time]
     except:
         messagebox.showinfo('Error', 'No pollutant selected')
         quit()
