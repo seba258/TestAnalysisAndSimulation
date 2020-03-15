@@ -74,7 +74,7 @@ def Select_pollutant():
 
         # create text field for altitude
         if 'lev' in DS.coords:
-            pass
+            print(DS.coords['lev'].values)
 
     # Initialize window
     window = tk.Tk()
