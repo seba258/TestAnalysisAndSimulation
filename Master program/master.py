@@ -26,8 +26,3 @@ while running:
     filepath, DS = Select_pollutant()
     print(filepath, DS)
     show_plot(filepath, 1, '2005-1-17')
-
-
-tk.mainloop()
-# If you put root.destroy() here, it will cause an error if the window is
-# closed with the window manager.
