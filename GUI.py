@@ -14,6 +14,8 @@ def Select_pollutant():
         filepath = filedialog.askopenfilename(
             filetypes=(("netCDF files", "*.nc4"), ("all files", "*.*")))
 
+        global DS
+
         # Extract data set from netCFD file
         DS = xr.open_dataset(filepath)
 
@@ -30,8 +32,8 @@ def Select_pollutant():
 
         # Instructions for dropdown
         label = tk.Label(window, text="Choose Pollutant:")
-        label.grid(column=0, row=1)
-
+        #label.grid(column=0, row=1)
+        label.grid(column = 0, row = 1)
         # Create dropdown menu
         dropdown = tk.OptionMenu(window, tkvar, *options)
         dropdown.grid(column = 1,row = 1)
@@ -48,6 +50,7 @@ def Select_pollutant():
     # Initialize window
     window = tk.Tk()
 
+
     # Set title
     window.title("Select Dataset")
 
@@ -61,9 +64,11 @@ def Select_pollutant():
 
 
 
+
     # button to confirm selection
     btn_ok = tk.Button(window, text="   OK   ", command=window.destroy)
-    btn_ok.grid(column=1, row=2)
+
+    btn_ok.grid(column = 1, row = 2)
 
     def cancel():
         window.destroy()
@@ -78,11 +83,10 @@ def Select_pollutant():
 
     try:
 
-        return filepath
+        return filepath, DS
     except:
         messagebox.showinfo('Error', 'No pollutant selected')
         quit()
 
-print(Select_pollutant())
 
 
