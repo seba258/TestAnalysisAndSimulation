@@ -5,13 +5,12 @@ import cartopy.crs as ccrs
 from GUI import Select_pollutant
 
 
-def show_plot(dataset, variable, level, time):
-    da = getattr(getattr(getattr(dataset, variable), "sel")(lev=level, method='nearest'), "sel")(time=time)
+def show_plot(variable, level, time):
+    da = getattr(getattr(variable, "sel")(lev=level, method='nearest'), "sel")(time=time)
     proj = ccrs.PlateCarree()
 
     # Create axes and add map
-    fig = plt.subplots()
-    ax = fig.axes(projection=proj)  # create axes
+    ax = plt.axes(projection=proj)  # create axes
     ax.coastlines(resolution='50m')  # draw coastlines with given resolution
 
     # Set color and scale of plot
@@ -26,7 +25,7 @@ running = True
 while running:
     filepath, DS = Select_pollutant()
     print(filepath, DS)
-    show_plot(DS, filepath, 1, '2005-1-17')
+    show_plot(filepath, 1, '2005-1-17')
 
 
 tk.mainloop()
