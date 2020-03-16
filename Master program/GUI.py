@@ -18,6 +18,11 @@ def Select_pollutant():
 
         global DS
 
+        global DS_sub
+        DS_sub = None
+
+        global DS_var
+
         # Extract data set from netCFD file
         DS = xr.open_dataset(filepath)
 
@@ -25,7 +30,17 @@ def Select_pollutant():
         time = ''
 
         global lev
-        lev = 0.9925  # sea level by default
+        lev = -1  # negative if it is not a variable
+
+        def open_subtracted():
+            global DS_sub
+            # Open filedialog window
+            subtracted_file = filedialog.askopenfilename(filetypes=(("netCDF files", "*.nc4"), ("all files", "*.*")))
+
+            DS_sub = xr.open_dataset(subtracted_file)
+
+        b_sub = tk.Button(window, text=" Open File with aircraft OFF (optional)", command=open_subtracted)
+        b_sub.grid(column=1, row=0)
 
         # Make list with variables
         varlst = []
@@ -50,8 +65,9 @@ def Select_pollutant():
         # Get value of dropdown
         def dropdown_val(*args):
             global filepath
-            val = str(tkvar.get())
-            filepath = getattr(DS, val)
+            global DS_var
+            DS_var = str(tkvar.get())
+            filepath = getattr(DS, DS_var)
 
         # Store value of dropdown
         tkvar.trace('w', dropdown_val)
@@ -94,7 +110,7 @@ def Select_pollutant():
         # Action for checkerbutton
         def chk(*args):
 
-            # Get state of teh button
+            # Get state of the button
             Anim_state = v.get()
             # Remove time dropdown if animation is selected
             if Anim_state:
@@ -178,7 +194,7 @@ def Select_pollutant():
     tkvar = tk.StringVar(window)
 
     # button to open file dialog
-    b1 = tk.Button(window, text=" Open File ", command=open_file)
+    b1 = tk.Button(window, text=" Open File with aircraft ON ", command=open_file)
     b1.grid(column=0, row=0)
 
 
@@ -199,9 +215,12 @@ def Select_pollutant():
     # Run window loop
     window.mainloop()
 
-    print(filepath, lev, time, Anim_state)
+    # print(filepath, lev, time, Anim_state)
     try:
-        return [filepath, lev, time, Anim_state]
+        if DS_sub is not None:
+            return [filepath, getattr(DS_sub, DS_var), lev, time, Anim_state]
+        else:
+            return [filepath, 0, lev, time, Anim_state]
     except:
         messagebox.showinfo('Error', 'No pollutant selected')
         quit()
