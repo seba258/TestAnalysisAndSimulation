@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter.ttk import *
 import xarray as xr
 from tkinter import messagebox
+from Altitude_converter import Altitude_Conversion, level_to_meter
+import numpy as np
 
 def Select_pollutant():
     def open_file():
@@ -76,6 +78,31 @@ def Select_pollutant():
         if 'lev' in DS.coords:
             print(DS.coords['lev'])
 
+            # Get altitude array
+            alt_lev = DS.coords['lev'].values
+
+            # Create tkinter variable
+            tkvar_lev = tk.StringVar(window)
+
+            # Find max value for slider and convert to meters
+            max_alt = level_to_meter(alt_lev.min())
+
+            # Create and position slider
+            sld = tk.Scale(window, variable = tkvar_lev, from_= 0, to= max_alt, orient='horizontal')
+            sld.grid(column = 1, row = 3)
+
+            # Create label
+            sld_label = tk.Label(window, text = "Choose Altitude:")
+            sld_label.grid(column = 0, row = 3)
+
+            # Get slider value
+            def slider_val(* args):
+                global alt
+                alt = str(tkvar_lev.get())
+
+            # Store slider value
+            tkvar_lev.trace('w', slider_val)
+
     # Initialize window
     window = tk.Tk()
 
@@ -97,21 +124,21 @@ def Select_pollutant():
     # button to confirm selection
     btn_ok = tk.Button(window, text="   OK   ", command=window.destroy)
 
-    btn_ok.grid(column = 1, row = 3)
+    btn_ok.grid(column = 1, row = 4)
 
     def cancel():
         window.destroy()
         quit()
     # Cancel and stop program
     btn_cancel = tk.Button(window, text = "    Cancel    ", command = cancel)
-    btn_cancel.grid(column = 0, row = 3)
+    btn_cancel.grid(column = 0, row = 4)
 
     # Run window loop
     window.mainloop()
 
     try:
 
-        return filepath, DS, time
+        return filepath, DS, time, alt
     except:
         messagebox.showinfo('Error', 'No pollutant selected')
         quit()

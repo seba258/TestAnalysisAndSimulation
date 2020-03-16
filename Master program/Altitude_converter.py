@@ -8,6 +8,7 @@ Created on Wed Mar 11 09:58:30 2020
 import numpy as np
 
 
+
 def Altitude_Conversion(h):
     # Import altitude level data
     alt_dat = np.genfromtxt("Altitude_levels.txt", skip_header = 3,usecols = (0,1,2))
@@ -25,4 +26,11 @@ def Altitude_Conversion(h):
             
     return h_tab, alt_num
 
-print(Altitude_Conversion(0))
+def level_to_meter(level):
+    alt_dat = np.genfromtxt("Altitude_levels.txt", skip_header = 3,usecols = (0,1,2))
+
+    for i in range(len(alt_dat[:,2])-1):
+        if alt_dat[i-1,1]<level and alt_dat[i,1]>=level:
+            h_tab = alt_dat[i,2]
+            alt_num = alt_dat[i,1]
+    return h_tab
