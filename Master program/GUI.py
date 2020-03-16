@@ -87,23 +87,34 @@ def Select_pollutant():
             # Store value of dropdown
             tkvar_t.trace('w', dropdown_val_t)
 
+        # Declaring animation state global to prevent errors
+        global Anim_state
+        Anim_state = False
 
-        def chk():
-            global Anim_state
+        # Action for checkerbutton
+        def chk(*args):
+
+            # Get state of teh button
             Anim_state = v.get()
-            if Anim_state == 1:
+            # Remove time dropdown if animation is selected
+            if Anim_state:
                 dropdown_t.grid_remove()
                 label_t.grid_remove()
-            if Anim_state == 0:
+
+            # Reposition dropdown if animation is deselected
+            if not Anim_state:
                 dropdown_t.grid()
                 label_t.grid()
 
 
 
+
         # Add a checkerbutton for animation
-        v = tk.IntVar()
+        v = tk.BooleanVar()
         c = tk.Checkbutton(window, text="Animate:", variable = v, command= chk)
         c.grid(column=0, row=1)
+
+
 
 
 
@@ -188,7 +199,7 @@ def Select_pollutant():
     # Run window loop
     window.mainloop()
 
-
+    print(filepath, lev, time, Anim_state)
     try:
         return [filepath, lev, time, Anim_state]
     except:

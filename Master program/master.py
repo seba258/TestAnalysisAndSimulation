@@ -75,7 +75,7 @@ running = True
 while running:
     filepath, lev, time, Anim_state = Select_pollutant()
 
-    if Anim_state == 1:
+    if Anim_state:
         animate_plot(filepath, lev)
     else:
         show_plot(filepath, lev, time)
