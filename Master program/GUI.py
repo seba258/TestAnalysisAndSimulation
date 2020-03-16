@@ -91,6 +91,7 @@ def Select_pollutant():
             # Create slider
             slider_lev = tk.Scale(window, variable=tkvar_lev, from_=min_alt, to=max_alt, tickinterval=1,
                                   length=(max_alt - min_alt) * 2)
+
             slider_lev.grid(column=1, row=3)
 
             # Get value of slider
@@ -98,8 +99,11 @@ def Select_pollutant():
                 global lev
                 lev = altitude_to_eta(tkvar_lev.get())
 
+
             # Store value of slider
             tkvar_lev.trace('w', slider_val_lev)
+
+
 
 
     # Initialize window
@@ -136,7 +140,12 @@ def Select_pollutant():
     window.mainloop()
 
     try:
+        a = lev
+    except:
+        lev = 0.9925
 
+
+    try:
         return [filepath, lev, time]
     except:
         messagebox.showinfo('Error', 'No pollutant selected')

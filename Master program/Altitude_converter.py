@@ -7,11 +7,12 @@ Created on Wed Mar 11 09:58:30 2020
 
 import numpy as np
 
-
+"""
 <<<<<<< HEAD
 
 =======
 >>>>>>> origin/master
+"""
 def Altitude_Conversion(h):
     # Import altitude level data
     alt_dat = np.genfromtxt("Altitude_levels.txt", skip_header = 3,usecols = (0,1,2))
@@ -28,9 +29,8 @@ def Altitude_Conversion(h):
             alt_num = 1
             
     return h_tab, alt_num
-<<<<<<< HEAD
-<<<<<<<< HEAD:Master program/Altitude_converter.py
 
+"""
 def level_to_meter(level):
     alt_dat = np.genfromtxt("Altitude_levels.txt", skip_header = 3,usecols = (0,1,2))
 
@@ -43,7 +43,7 @@ def level_to_meter(level):
 >>>>>>>> origin/master:Altitude_converter.py
 =======
 
-
+"""
 # generate altitude in km from a given eta
 def eta_to_altitude(h):
     # Import altitude level data
@@ -70,6 +70,7 @@ def altitude_to_eta(h):
         if alt_dat[i, 2] >= h > alt_dat[i + 1, 2]:
 
             eta = alt_dat[i, 1]
+        if h < 1:
+            eta = max(alt_dat[:,1])
 
     return eta
->>>>>>> origin/master
