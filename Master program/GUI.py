@@ -3,8 +3,8 @@ import tkinter as tk
 from tkinter.ttk import *
 import xarray as xr
 from tkinter import messagebox
-from Altitude_converter import Altitude_Conversion, level_to_meter
-import numpy as np
+from Altitude_converter import eta_to_altitude, altitude_to_eta
+
 
 def Select_pollutant():
     def open_file():
@@ -23,6 +23,9 @@ def Select_pollutant():
 
         global time
         time = ''
+
+        global lev
+        lev = -1  # sea level by default
 
         # Make list with variables
         varlst = []
@@ -75,33 +78,29 @@ def Select_pollutant():
             tkvar_t.trace('w', dropdown_val_t)
 
         # create text field for altitude
-        if 'lev' in DS.coords:
-            print(DS.coords['lev'])
-
-            # Get altitude array
-            alt_lev = DS.coords['lev'].values
+        if 'lev' in DS.coords and DS.coords['lev'].values.size > 1:
+            min_alt = eta_to_altitude(max(DS.coords['lev'].values))
+            max_alt = eta_to_altitude(min(DS.coords['lev'].values))
 
             # Create tkinter variable
-            tkvar_lev = tk.StringVar(window)
+            tkvar_lev = tk.DoubleVar(window)
 
-            # Find max value for slider and convert to meters
-            max_alt = level_to_meter(alt_lev.min())
+            # Instructions for slider
+            label_lev = tk.Label(window, text="Choose Altitude [km]:")
+            label_lev.grid(column=0, row=3)
+            # Create slider
+            slider_lev = tk.Scale(window, variable=tkvar_lev, from_=min_alt, to=max_alt, tickinterval=1,
+                                  length=(max_alt - min_alt) * 2)
+            slider_lev.grid(column=1, row=3)
 
-            # Create and position slider
-            sld = tk.Scale(window, variable = tkvar_lev, from_= 0, to= max_alt, orient='horizontal')
-            sld.grid(column = 1, row = 3)
+            # Get value of slider
+            def slider_val_lev(*args):
+                global lev
+                lev = altitude_to_eta(tkvar_lev.get())
 
-            # Create label
-            sld_label = tk.Label(window, text = "Choose Altitude:")
-            sld_label.grid(column = 0, row = 3)
+            # Store value of slider
+            tkvar_lev.trace('w', slider_val_lev)
 
-            # Get slider value
-            def slider_val(* args):
-                global alt
-                alt = str(tkvar_lev.get())
-
-            # Store slider value
-            tkvar_lev.trace('w', slider_val)
 
     # Initialize window
     window = tk.Tk()
@@ -138,7 +137,7 @@ def Select_pollutant():
 
     try:
 
-        return filepath, DS, time, alt
+        return [filepath, lev, time]
     except:
         messagebox.showinfo('Error', 'No pollutant selected')
         quit()
