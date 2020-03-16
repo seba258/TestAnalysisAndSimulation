@@ -25,7 +25,7 @@ def Select_pollutant():
         time = ''
 
         global lev
-        lev = -1  # sea level by default
+        lev = 0.9925  # sea level by default
 
         # Make list with variables
         varlst = []
@@ -45,6 +45,8 @@ def Select_pollutant():
         # Create dropdown menu
         dropdown = tk.OptionMenu(window, tkvar, *options)
         dropdown.grid(column = 1,row = 1)
+
+        print(DS.coords)
 
         # Get value of dropdown
         def dropdown_val(*args):
@@ -138,11 +140,6 @@ def Select_pollutant():
 
     # Run window loop
     window.mainloop()
-
-    try:
-        a = lev
-    except:
-        lev = 0.9925
 
 
     try:
