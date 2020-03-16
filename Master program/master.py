@@ -73,6 +73,10 @@ def animate_plot(var,level):
 running = True
 
 while running:
-    filepath, lev, time = Select_pollutant()
-    #show_plot(filepath, lev, time)
-    animate_plot(filepath, lev)
+    filepath, lev, time, Anim_state = Select_pollutant()
+
+    if Anim_state == 1:
+        animate_plot(filepath, lev)
+    else:
+        show_plot(filepath, lev, time)
+

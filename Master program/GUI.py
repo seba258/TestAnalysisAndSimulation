@@ -41,12 +41,11 @@ def Select_pollutant():
         # Instructions for dropdown
         label = tk.Label(window, text="Choose Pollutant:")
         #label.grid(column=0, row=1)
-        label.grid(column = 0, row = 1)
+        label.grid(column = 1, row = 1)
         # Create dropdown menu
         dropdown = tk.OptionMenu(window, tkvar, *options)
-        dropdown.grid(column = 1,row = 1)
+        dropdown.grid(column = 2,row = 1)
 
-        print(DS.coords)
 
         # Get value of dropdown
         def dropdown_val(*args):
@@ -57,6 +56,14 @@ def Select_pollutant():
         # Store value of dropdown
         tkvar.trace('w', dropdown_val)
 
+        def Check(* args):
+            global state
+            state = v.get()
+            #print(state)
+            return state
+
+
+
         # create dropdown menu for time if it is a variable
         if 'time' in DS.coords:
             options_t = DS.coords['time'].values
@@ -66,10 +73,11 @@ def Select_pollutant():
 
             # Instructions for dropdown
             label_t = tk.Label(window, text="Choose Time:")
-            label_t.grid(column=0, row=2)
+            label_t.grid(column=1, row=2)
             # Create dropdown menu
+
             dropdown_t = tk.OptionMenu(window, tkvar_t, *options_t)
-            dropdown_t.grid(column=1, row=2)
+            dropdown_t.grid(column=2, row=2)
 
             # Get value of dropdown
             def dropdown_val_t(*args):
@@ -78,6 +86,28 @@ def Select_pollutant():
 
             # Store value of dropdown
             tkvar_t.trace('w', dropdown_val_t)
+
+
+        def chk():
+            global Anim_state
+            Anim_state = v.get()
+            if Anim_state == 1:
+                dropdown_t.grid_remove()
+                label_t.grid_remove()
+            if Anim_state == 0:
+                dropdown_t.grid()
+                label_t.grid()
+
+
+
+        # Add a checkerbutton for animation
+        v = tk.IntVar()
+        c = tk.Checkbutton(window, text="Animate:", variable = v, command= chk)
+        c.grid(column=0, row=1)
+
+
+
+
 
         # create text field for altitude
         if 'lev' in DS.coords and DS.coords['lev'].values.size > 1:
@@ -160,7 +190,7 @@ def Select_pollutant():
 
 
     try:
-        return [filepath, lev, time]
+        return [filepath, lev, time, Anim_state]
     except:
         messagebox.showinfo('Error', 'No pollutant selected')
         quit()
