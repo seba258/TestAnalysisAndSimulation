@@ -3,8 +3,8 @@ import tkinter as tk
 from tkinter.ttk import *
 import xarray as xr
 from tkinter import messagebox
-from Altitude_converter import eta_to_altitude, altitude_to_eta
-
+from Altitude_converter import eta_to_altitude, altitude_to_eta, levels_to_altitude, altitude_to_levels
+import numpy as np
 
 def Select_pollutant():
     def open_file():
@@ -81,8 +81,30 @@ def Select_pollutant():
 
         # create text field for altitude
         if 'lev' in DS.coords and DS.coords['lev'].values.size > 1:
-            min_alt = eta_to_altitude(max(DS.coords['lev'].values))
-            max_alt = eta_to_altitude(min(DS.coords['lev'].values))
+
+            # Check in which way the altitude data is represented (ETA or levels)
+
+            # Altitude represented in ETA
+            if type(DS.coords['lev'].values[1])==np.float64:
+                min_alt = eta_to_altitude(max(DS.coords['lev'].values))
+                max_alt = eta_to_altitude(min(DS.coords['lev'].values))
+
+                # Get value of slider
+                def slider_val_lev(*args):
+                    global lev
+                    lev = altitude_to_eta(tkvar_lev.get())
+
+            # Altitude represented in levels:
+            if type(DS.coords['lev'].values[1])==np.int32:
+
+                min_alt = levels_to_altitude(min(DS.coords['lev'].values))
+                max_alt = levels_to_altitude(max(DS.coords['lev'].values))
+
+
+                # Get value of slider
+                def slider_val_lev(*args):
+                    global lev
+                    lev = altitude_to_levels(tkvar_lev.get())
 
             # Create tkinter variable
             tkvar_lev = tk.DoubleVar(window)
@@ -91,15 +113,10 @@ def Select_pollutant():
             label_lev = tk.Label(window, text="Choose Altitude [km]:")
             label_lev.grid(column=0, row=3)
             # Create slider
-            slider_lev = tk.Scale(window, variable=tkvar_lev, from_=min_alt, to=max_alt, tickinterval=1,
-                                  length=(max_alt - min_alt) * 2)
+            slider_lev = tk.Scale(window, variable=tkvar_lev, from_=min_alt, to=max_alt, tickinterval=1, length = 150)#,
+                                  #length=(max_alt - min_alt) * 2)
 
             slider_lev.grid(column=1, row=3)
-
-            # Get value of slider
-            def slider_val_lev(*args):
-                global lev
-                lev = altitude_to_eta(tkvar_lev.get())
 
 
             # Store value of slider

@@ -74,3 +74,33 @@ def altitude_to_eta(h):
             eta = max(alt_dat[:,1])
 
     return eta
+
+def levels_to_altitude(h):
+    # Import altitude level data
+    alt_dat = np.genfromtxt("Altitude_levels.txt", skip_header=3, usecols=(0, 1, 2))
+    # Iterate through altitude table
+    altitude = min(alt_dat[:, 2])  # set to sea level
+    for i in range(len(alt_dat[:, 0]) - 1):
+        # Check if h is in interval
+        if alt_dat[i, 0] >= h >alt_dat[i + 1, 0]:
+            altitude = alt_dat[i, 2]
+
+    return altitude
+
+
+def altitude_to_levels(h):
+    # Import altitude level data
+    alt_dat = np.genfromtxt("Altitude_levels.txt", skip_header=3, usecols=(0, 1, 2))
+    # Iterate through altitude table
+    levels = min(alt_dat[:, 0])  # set to sea level
+    for i in range(len(alt_dat[:, 2]) - 1):
+
+        # Check if h is in interval
+        if alt_dat[i, 2] >= h >alt_dat[i + 1, 2]:
+
+            levels = alt_dat[i, 0]
+
+        if h < 1:
+            levels = min(alt_dat[:, 0])
+
+    return levels
