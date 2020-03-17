@@ -29,6 +29,7 @@ def Select_pollutant():
         global time
         time = ''
 
+
         global lev
         lev = 0.9925  # Should be SL to avoid crashing when not using slider
 
@@ -222,6 +223,7 @@ def Select_pollutant():
     try:
         if DS_sub is not None:
             return [filepath, getattr(DS_sub, DS_var), lev, time, Anim_state]
+
         else:
             return [filepath, 0, lev, time, Anim_state]
     except:

@@ -6,8 +6,9 @@ from GUI import Select_pollutant
 
 
 def show_plot(da, level, time):
-    if level > 0:
+    if hasattr(da, 'lev') and level > 0:
         da = getattr(da, "sel")(lev=level, method='nearest')
+
     if len(time) > 0:
         da = getattr(da, "sel")(time=time)
     proj = ccrs.PlateCarree()
