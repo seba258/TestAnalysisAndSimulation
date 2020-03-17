@@ -30,7 +30,7 @@ def Select_pollutant():
         time = ''
 
         global lev
-        lev = -1  # negative if it is not a variable
+        lev = 0.9925  # Should be SL to avoid crashing when not using slider
 
         def open_subtracted():
             global DS_sub
@@ -111,7 +111,10 @@ def Select_pollutant():
         def chk(*args):
 
             # Get state of the button
+            global Anim_state # Necessary for animation to play
+            # Get state of the button
             Anim_state = v.get()
+
             # Remove time dropdown if animation is selected
             if Anim_state:
                 dropdown_t.grid_remove()

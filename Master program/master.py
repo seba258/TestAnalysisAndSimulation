@@ -26,7 +26,7 @@ def animate_plot(var,level):
 
 
     # Check if there are different altitude levels
-    if hasattr(var, 'lev'):
+    if hasattr(var, 'lev') and var.lev.values.size>1:
 
         da = getattr(var, "sel")(lev=level, method='nearest')
 
