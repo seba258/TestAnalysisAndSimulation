@@ -6,6 +6,9 @@ import json
 
 # from matplotlib import pyplot as plt
 
+# WARNING: This piece of code is not used for anything at the moment and only kept for future reference. Check out
+# country_master.py for the useful code
+
 # the countries that are (partially) in the area for which we have data
 # TODO: Calculate the area of each country within the data region, and export is as well so the data can be normalised
 interesting = [

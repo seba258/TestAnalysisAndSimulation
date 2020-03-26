@@ -3,6 +3,8 @@ import xarray as xr
 import numpy as np
 from matplotlib import pyplot as plt
 
+# WARNING: This piece of code is not used for anything at the moment and only kept for future reference. Check out
+# country_master.py for the useful code
 # TODO: Average or sum pollution values over time
 # TODO: Verify that all grid cells are indeed the same size
 # TODO: Draw map with colour coding for the pollution/emission ratio
