@@ -7,6 +7,7 @@ import json
 # from matplotlib import pyplot as plt
 
 # the countries that are (partially) in the area for which we have data
+# TODO: Calculate the area of each country within the data region, and export is as well so the data can be normalised
 interesting = [
     "Albania",
     "Andorra",
@@ -131,16 +132,10 @@ for country in countries:
     # to them. If you don't remove that, the statement doesn't find any of them in the "interesting" list
     country_name = country.attributes['NAME_ENGL'].split("\x00")[0]
     if country_name in interesting:
-        # print(country.attributes['NAME_ENGL'])
         country_dict[country_name] = []
         multipolygon = country.geometry.geoms  # a multipolygon can consist of several disjoint polygons
         for polygon in multipolygon:  # each of these is a shapely polygon
             country_dict[country_name].append(polygon)
-            # plt.plot(*polygon.exterior.xy)
-
-    else:  # called for countries that are not "interesting"
-        # print("                            ", country.attributes['NAME_ENGL'])
-        pass
 
 print("Assigning grid cells to countries...")
 
@@ -162,5 +157,3 @@ with open("country_coords.txt", "w") as output_file:
     output_file.write(json.dumps(country_coords, sort_keys=True, indent=4, separators=(',', ': ')))
 
 print("Finished")
-
-# plt.show()
