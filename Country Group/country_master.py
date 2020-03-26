@@ -154,14 +154,15 @@ def find_poll_em_ratios(countries):
 
 def plot(countries, poll_em_ratios):
     ax = plt.gca()
+    ax.set_title("Relative Pollution/Emission Ratio in January")
     ax.set_xlim([-30, 50])
-    ax.set_ylim([25, 70])
+    ax.set_ylim([28, 72])
     min_ratio = min(poll_em_ratios.values())
     max_ratio = max(poll_em_ratios.values())
     for name in countries:
         if name in poll_em_ratios:
             value = poll_em_ratios[name]
-            colour = np.sqrt((value - min_ratio) / (max_ratio - min_ratio))
+            colour = 1 - np.sqrt((value - min_ratio) / (max_ratio - min_ratio))
             for region in countries[name]:
                 ax.plot(*region.exterior.xy, alpha=0)
                 ax.add_patch(PolygonPatch(region, facecolor=(colour, colour, colour)))
