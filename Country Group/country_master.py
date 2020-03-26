@@ -4,14 +4,39 @@ import xarray as xr
 import numpy as np
 from matplotlib import pyplot as plt
 from descartes import PolygonPatch
+from pprint import PrettyPrinter
 
-# the countries that are (partially) in the area for which we have data
+"""
+Shows map with colour coding for the ground pollution over emission ratios. Only black carbon (BC) emissions and
+pollution are considered.
+The user can select between summer and winter (see boolean below) and the altitude ranges over which emissions are
+considered (e.g. to separate cruise and LTO emissions).
+The ratio of countries with no emissions over the considered altitude range is set to zero (the same is done for
+countries the user can specify as outliers). Dark colours mean high pollution to emission ratio.
+
+@author Jakob
+"""
+
 # TODO: Calculate the area of each country within the data region to allow for area-normalised data (i.e. per sq. m)
 # TODO: Plot ratio in higher resolution than just country level
 # Always keep in mind that the data for countries such as Russia and Algeria are only representative of the part of that
 # country which lies within the data region (and not of the entire country)
 # Also note that the pollution data is influenced by areas outside of the data region (e.g. emissions from the US
 # reach Western Europe and cause pollution), while emission data is only from above Europe
+# The numbers for emissions are often VERY small, in the order of 10^-14 to 10^-15. Is machine precision in issue?
+# AvEmMasses.nc4 can also be used instead of AvEmFluxes.nc4, but it does not contain any information about differences
+# in altitudes. It merely contains the sum of all emissions over a certain grid cell
+
+summer = False  # used to select between pollution data for January and July
+
+# the altitude levels over which emissions will be considered. Check Altitude_levels.txt for conversion to km
+emission_levels = slice(1, 14)
+
+# the ratio for these countries will be set to zero. That is useful if some countries have such high or low ratios that
+# they make it impossible to see any differences between the other countries
+outlier_countries = ["Latvia", "Iraq", "Israel"]
+
+# the countries that are (partially) in the area for which we have data
 interesting = [
     "Albania",
     "Andorra",
@@ -89,9 +114,11 @@ interesting = [
 # system is with longitude and latitude in degrees
 shape_file = 'Shapefiles/CNTR_RG_20M_2016_4326.shp'
 
-poll_on_filename = "Soot.24h.JAN.ON.nc4"  # NetCDF file containing pollution with aircraft on
-poll_off_filename = "Soot.24h.JAN.OFF.nc4"  # NetCDF file containing pollution with aircraft off
-em_filename = "AvEmMasses.nc4"  # NetCDF file containing aircraft emissions
+# NetCDF files containing pollution with aircraft on and off, respectively
+poll_on_filename = "Soot.24h.{}.ON.nc4".format("JUL" if summer else "JAN")
+poll_off_filename = "Soot.24h.{}.OFF.nc4".format("JUL" if summer else "JAN")
+
+em_filename = "AvEmFluxes.nc4"  # NetCDF file containing aircraft emissions
 
 
 # create a dictionary containing the polygons for all countries listed in "interesting". This function returns a
@@ -163,25 +190,37 @@ def find_poll_em_ratios(countries):
                     poll_em_ratios[country] = [0, 0]
                 # select the correct values from the simulation data and add it to the counters. Sum over all parameters
                 # which are not explicitly specified (e.g. time or altitude)
-                poll_em_ratios[country][0] += np.sum(da_em.sel(lon=lon, lat=lat).values)
+                # print(country, lon, lat, da_em.sel(lon=lon, lat=lat).sel(lev=slice(1, 8)).values)
+                poll_em_ratios[country][0] += np.sum(da_em.sel(lon=lon, lat=lat)
+                                                     .sel(lev=emission_levels).values)  # select altitude range
                 poll_em_ratios[country][1] += np.sum(da_poll.sel(lon=lon, lat=lat)
                                                      .sel(lev=1, method='nearest').values) / t_steps
 
+    # list of all countries that were removed, either if they had no emissions (which would lead to division by zero)
+    # or because they were labelled as outliers. This list does not contain the countries for which we do not have
+    # any data at all
+    removed_countries = []
+
     # calculate the ratios from the data found in the previous block to get the format "country_name: ratio"
     for country in poll_em_ratios:
-        poll_em_ratios[country] = poll_em_ratios[country][1] / poll_em_ratios[country][0]
+        # avoid division by zero and check that the country isn't labeled as an outlier
+        if poll_em_ratios[country][0] != 0 and not any([outlier in country for outlier in outlier_countries]):
+            poll_em_ratios[country] = poll_em_ratios[country][1] / poll_em_ratios[country][0]
+        else:
+            removed_countries.append(country)
+            poll_em_ratios[country] = 0
 
-    return poll_em_ratios
+    return poll_em_ratios, removed_countries
 
 
 # show map with colour coding for the pollution over emission ratios
 def plot(countries, poll_em_ratios):
     ax = plt.gca()  # get the axes of the current figure
-    ax.set_title("Relative Pollution/Emission Ratio in January")
+    ax.set_title("Relative Pollution/Emission Ratio in " + ("July" if summer else "January"))
 
     # only display the region for which we have data
     ax.set_xlim([-30, 50])
-    ax.set_ylim([28, 72])
+    ax.set_ylim([30, 70])
 
     # find maximum and minimum ratio to scale the colour coding
     min_ratio = min(poll_em_ratios.values())
@@ -202,11 +241,15 @@ def plot(countries, poll_em_ratios):
             ax.add_patch(PolygonPatch(region, facecolor=(colour, colour, colour)))  # fill the polygon with colour
 
 
+pp = PrettyPrinter(indent=4)
 print("Creating country polygons...")
 countries = create_country_polygons()
 print("Finding pollution to emission ratios...")
-poll_em_ratios = find_poll_em_ratios(countries)
+poll_em_ratios, removed_countries = find_poll_em_ratios(countries)
 print("Plotting...")
 plot(countries, poll_em_ratios)
 print("Finished")
+print("The following countries were removed:", removed_countries)
+print("The resulting pollution to emission ratios are:")
+pp.pprint(poll_em_ratios)
 plt.show()
