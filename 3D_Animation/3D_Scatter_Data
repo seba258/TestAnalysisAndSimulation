@@ -59,28 +59,41 @@ def Datapoints():
 sel = Datapoints()
 
 time = sel[:,0]
-lev = sel[:,1]
-lat = sel[:,2]
-lon = sel[:,3]
-
-#for i in range(len(sel)):
-#    if not time == 0:
-
-
-
+lev = []
+lat = []
+lon = []
 
 # Make figure for test plot
 fig = plt.figure()
 ax = p3.Axes3D(fig)
+
+for i in range(30):
+    for j in range(len(sel)):
+        if time[j] == i:
+            lev.append(sel[j, 1])
+            lat.append(sel[j, 2])
+            lon.append(sel[j, 3])
+
+    # Plot datapoints
+    ax.scatter3D(lon, lat, lev, c=lev, cmap='hsv');
+
+    ax.set_xlabel('longitude');
+    ax.set_ylabel('latitude');
+    ax.set_zlabel('altitude');
+
+    filename = 'output/3D_Graph' + str(i) + '.png'
+    plt.savefig(filename, dpi=96)
+
+    lev = []
+    lat = []
+    lon = []
+
+
+
 # Create axes
 
-# Plot datapoints
-ax.scatter3D(lon, lat, lev, c=lev, cmap='Greens');
 
-ax.set_xlabel('longitude');
-ax.set_ylabel('latitude');
-ax.set_zlabel('altitude');
 
 #anim = animation.FuncAnimation(fig, update , 20, fargs=(data, lines), interval=50, blit=False)
-plt.show()
+
 
