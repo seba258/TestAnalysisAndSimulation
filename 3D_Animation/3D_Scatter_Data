@@ -1,4 +1,12 @@
 
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Mar 27 13:29:50 2020
+
+@author: Egon Beyne
+"""
+
+
 
 import numpy as np
 import xarray as xr
@@ -8,56 +16,80 @@ import matplotlib.animation as animation
 
 # Convert eta levels to altitude
 def eta_to_altitude_arr(eta_array):
-    
+
     # data
     alt_dat = np.genfromtxt("Altitude_levels.txt", skip_header = 3,usecols = (1,2))
-    
+
     # Grid points
     grid = alt_dat[:,0]
-    
+
     # Function values at grid points
     func = alt_dat[:,1]
     return np.interp(eta_array, grid, func)
 
 
-def Datapoints():
-    
+def Datapoints(time):
+
     # Path to datafiles
     file_on     = "Data/Soot.24h.JUL.ON.nc4"
     file_off    = "Data/Soot.24h.JUL.OFF.nc4"
-    
+
+    # Open datafile to acces timesteps
+    DS = xr.open_dataset("Data/Soot.24h.JUL.ON.nc4").AerMassBC
+
     # Open datafile and select set
-    DS_ON   = xr.open_dataset(file_on).AerMassBC
-    DS_OFF  = xr.open_dataset(file_off).AerMassBC
-    
+    DS_ON   = xr.open_dataset(file_on).AerMassBC.sel(time = DS.time.values[time])
+    DS_OFF  = xr.open_dataset(file_off).AerMassBC.sel(time = DS.time.values[time])
+
     # Filtering out non-aviation data
     da      = DS_ON - DS_OFF
-    
+
     # Threshold
     thrs = float(da.mean())*15 # 15X mean gives cruise level pollution, but slow
-    
-    
+
+
     # Store indices of location where pollution exceeds threshold
     sel = np.argwhere(np.array(da)>thrs)
-    
-    
+
+
     # Convert indices to coordinates
-    lev = np.take(da.lev.values,sel[:,1])
-    lat = np.take(da.lat.values,sel[:,2])
-    lon = np.take(da.lon.values,sel[:,3])
-    
+    lev = np.take(da.lev.values,sel[:,0])
+    lat = np.take(da.lat.values,sel[:,1])
+    lon = np.take(da.lon.values,sel[:,2])
+
     # Change array type to float
     sel = sel.astype('float64')
-    
+
     # Add coordinates to array
-    sel[:,1] = eta_to_altitude_arr(lev)
-    sel[:,2] = lat
-    sel[:,3] = lon
-    
+    sel[:,0] = eta_to_altitude_arr(lev)
+    sel[:,1] = lat
+    sel[:,2] = lon
+
     return sel
 
-sel = Datapoints()
+# Get number of days
+steps = xr.open_dataset("Data/Soot.24h.JUL.ON.nc4").AerMassBC.time.size
 
+
+# Make figure for test plot
+fig = plt.figure()
+ax = p3.Axes3D(fig)
+
+# Iterate through every day
+for time in range(steps):
+    points = Datapoints(time)
+
+    lev = points[:,0]
+    lat = points[:,1]
+    lon = points[:,2]
+
+    ax.scatter3D(lon,lat,lev)
+    plt.show()
+
+
+
+
+"""
 time = sel[:,0]
 lev = []
 lat = []
@@ -86,7 +118,7 @@ for i in range(20):
 
     ax.set_label("Day"+str(i))
     filename = 'output/3D_Graph' + str(i) + '.png'
-    plt.savefig(filename, dpi=96)
+    #plt.savefig(filename, dpi=96)
 
     lev = []
     lat = []
@@ -99,4 +131,4 @@ for i in range(20):
 
 #anim = animation.FuncAnimation(fig, update , 20, fargs=(data, lines), interval=50, blit=False)
 
-
+"""
