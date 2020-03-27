@@ -23,8 +23,8 @@ def eta_to_altitude_arr(eta_array):
 def Datapoints():
     
     # Path to datafiles
-    file_on     = "Data/Soot.24h.JAN.ON.nc4"
-    file_off    = "Data/Soot.24h.JAN.OFF.nc4"
+    file_on     = "Data/Soot.24h.JUL.ON.nc4"
+    file_off    = "Data/Soot.24h.JUL.OFF.nc4"
     
     # Open datafile and select set
     DS_ON   = xr.open_dataset(file_on).AerMassBC
@@ -91,7 +91,6 @@ for i in range(20):
     lev = []
     lat = []
     lon = []
-
 
 
 # Create axes
