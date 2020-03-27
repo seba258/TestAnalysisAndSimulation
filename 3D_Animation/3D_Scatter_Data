@@ -3,13 +3,14 @@
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
-
+import mpl_toolkits.mplot3d.axes3d as p3
+import matplotlib.animation as animation
 
 # Convert eta levels to altitude
 def eta_to_altitude_arr(eta_array):
     
     # data
-    alt_dat = np.genfromtxt("Master program/Altitude_levels.txt", skip_header = 3,usecols = (1,2))
+    alt_dat = np.genfromtxt("Altitude_levels.txt", skip_header = 3,usecols = (1,2))
     
     # Grid points
     grid = alt_dat[:,0]
@@ -22,8 +23,8 @@ def eta_to_altitude_arr(eta_array):
 def Datapoints():
     
     # Path to datafiles
-    file_on     = "Data/Soot.24h.JAN.ON.nc4"
-    file_off    = "Data/Soot.24h.JAN.OFF.nc4"
+    file_on     = "Data/Soot.24h.JUL.ON.nc4"
+    file_off    = "Data/Soot.24h.JUL.OFF.nc4"
     
     # Open datafile and select set
     DS_ON   = xr.open_dataset(file_on).AerMassBC
@@ -57,20 +58,45 @@ def Datapoints():
 
 sel = Datapoints()
 
-
-lev = sel[:,1]
-lat = sel[:,2]
-lon = sel[:,3]
-
-
+time = sel[:,0]
+lev = []
+lat = []
+lon = []
 
 # Make figure for test plot
 fig = plt.figure()
+ax = p3.Axes3D(fig)
+
+for i in range(20):
+    for j in range(len(sel)):
+        if time[j] == i:
+            lev.append(sel[j, 1])
+            lat.append(sel[j, 2])
+            lon.append(sel[j, 3])
+
+    # Plot datapoints
+    ax.scatter3D(lon, lat, lev, c=lev, cmap='RdBu');
+
+    ax.set_xlabel('longitude');
+    ax.set_ylabel('latitude');
+    ax.set_zlabel('altitude');
+    ax.set_xlim3d(50, -20)
+    ax.set_ylim3d(30, 80)
+    ax.set_zlim3d(0, 14)
+
+    ax.set_label("Day"+str(i))
+    filename = 'output/3D_Graph' + str(i) + '.png'
+    plt.savefig(filename, dpi=96)
+
+    lev = []
+    lat = []
+    lon = []
+
 
 # Create axes
-ax = plt.axes(projection = '3d')
 
-# Plot datapoints
-ax.scatter3D(lat, lon, lev)
 
-plt.show()
+
+#anim = animation.FuncAnimation(fig, update , 20, fargs=(data, lines), interval=50, blit=False)
+
+
