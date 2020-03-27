@@ -30,7 +30,7 @@ countries the user can specify as outliers). Dark colours mean high pollution to
 summer = False  # used to select between pollution data for January and July
 
 # the altitude levels over which emissions will be considered. Check Altitude_levels.txt for conversion to km
-emission_levels = [14, 32]
+emission_levels = slice(1, 14)
 
 # the ratio for these countries will be set to zero. That is useful if some countries have such high or low ratios that
 # they make it impossible to see any differences between the other countries
@@ -217,7 +217,9 @@ def find_poll_em_ratios(countries):
 def plot(countries, poll_em_ratios):
     ax = plt.gca()  # get the axes of the current figure
     ax.set_title("Ground Pollution/Emission Ratio\n\nConsidered chemical: BC | Time frame for pollution: " +
-                 ("July" if summer else "January") + " 2005 | Altitude levels for emission: " + str(emission_levels))
+                 ("July" if summer else "January") + " 2005 | Altitude levels for emission: " +
+                 str(emission_levels.start) + " to " + str(emission_levels.stop))
+    ax.set_xlabel("Removed countries: " + str(removed_countries))
 
     # only display the region for which we have data
     ax.set_xlim([-30, 50])
