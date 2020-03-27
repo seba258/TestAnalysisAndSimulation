@@ -83,8 +83,17 @@ for time in range(steps):
     lat = points[:,1]
     lon = points[:,2]
 
-    ax.scatter3D(lon,lat,lev)
-    plt.show()
+    ax.set_xlabel('longitude')
+    ax.set_ylabel('latitude')
+    ax.set_zlabel('altitude')
+    ax.set_xlim3d(50, -20)
+    ax.set_ylim3d(30, 80)
+    ax.set_zlim3d(0, 14)
+
+    ax.scatter3D(lon,lat,lev,c=lev, cmap='RdBu')
+    filename = 'output/3D_Graph' + str(time) + '.png'
+    plt.savefig(filename, dpi=96)
+    #plt.show()
 
 
 
