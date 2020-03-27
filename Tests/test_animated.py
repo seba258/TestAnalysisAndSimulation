@@ -3,7 +3,7 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 
-data_dir = "../Data/"
+data_dir = "Data/"
 output_dir = "Output/"
 
 filename = "Aerosol.24h.JAN.OFF"
