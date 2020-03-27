@@ -80,7 +80,6 @@ ax = fig.add_subplot(111, projection='3d')
 
 sct, = ax.plot([], [], [], "o", markersize=2)
 
-
 # Function to plot in animation
 def update(ifrm, xa, ya, za):
     sct.set_data(xa[ifrm], ya[ifrm])
@@ -91,6 +90,12 @@ def update(ifrm, xa, ya, za):
 ax.set_xlim(-30, 50)
 ax.set_ylim(30, 70)
 ax.set_zlim(0, 15)
+
+# Set axis Titles
+ax.set_xlabel("Longitude")
+ax.set_ylabel("Latitude")
+ax.set_zlabel("Altitude")
+ax.set_title("3D Animation")
 
 # Animation
 ani = animation.FuncAnimation(fig, update, nfr, fargs=(xs, ys, zs), interval=1000 / fps)
