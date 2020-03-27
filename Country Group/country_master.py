@@ -34,7 +34,7 @@ emission_levels = slice(1, 14)
 
 # the ratio for these countries will be set to zero. That is useful if some countries have such high or low ratios that
 # they make it impossible to see any differences between the other countries
-outlier_countries = ["Latvia", "Iraq", "Israel"]
+outlier_countries = []
 
 # the countries that are (partially) in the area for which we have data
 interesting = [
@@ -216,7 +216,10 @@ def find_poll_em_ratios(countries):
 # show map with colour coding for the pollution over emission ratios
 def plot(countries, poll_em_ratios):
     ax = plt.gca()  # get the axes of the current figure
-    ax.set_title("Relative Pollution/Emission Ratio in " + ("July" if summer else "January"))
+    ax.set_title("Ground Pollution/Emission Ratio\n\nConsidered chemical: BC | Time frame for pollution: " +
+                 ("July" if summer else "January") + " 2005 | Altitude levels for emission: " +
+                 str(emission_levels.start) + " to " + str(emission_levels.stop))
+    ax.set_xlabel("Removed countries: " + str(removed_countries))
 
     # only display the region for which we have data
     ax.set_xlim([-30, 50])
