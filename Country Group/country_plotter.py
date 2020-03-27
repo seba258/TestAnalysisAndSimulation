@@ -3,6 +3,8 @@ import xarray as xr
 import numpy as np
 from matplotlib import pyplot as plt
 
+# WARNING: This piece of code is not used for anything at the moment and only kept for future reference. Check out
+# country_master.py for the useful code
 # TODO: Average or sum pollution values over time
 # TODO: Verify that all grid cells are indeed the same size
 # TODO: Draw map with colour coding for the pollution/emission ratio
@@ -24,6 +26,7 @@ da_em = DS.BC
 DS_on = xr.open_dataset(poll_on_filename)
 DS_off = xr.open_dataset(poll_off_filename)
 da_poll = DS_on.AerMassBC - DS_off.AerMassBC
+t_steps = len(da_poll.coords['time'].values)
 
 print("Processing...")
 data = {}
@@ -32,7 +35,7 @@ for country in country_coords:
     data[country] = np.zeros(2)
     for cell in np.array(country_coords[country]):
         data[country][0] += np.sum(da_em.sel(lon=cell[0], lat=cell[1]).values)
-        data[country][1] += np.sum(da_poll.sel(lon=cell[0], lat=cell[1]).sel(lev=1, method='nearest').values)
+        data[country][1] += np.sum(da_poll.sel(lon=cell[0], lat=cell[1]).sel(lev=1, method='nearest').values) / t_steps
 
 print("Plotting...")
 plt.subplot(211)
@@ -43,7 +46,7 @@ for country in data:
     plt.annotate(country, data[country])
 
 plt.xlabel("BC Emission Mass from Aviation [kg/day]")
-plt.ylabel("Mass of Ground-Level BC Aerosol from Aviation Over 21 Days [$\mu/m^3$]")
+plt.ylabel("Average Ground-Level BC Aerosol from Aviation [$\mu/m^3$]")
 
 plt.subplot(212)
 plt.bar(range(len(data)), values[:, 1] / values[:, 0], align='center')

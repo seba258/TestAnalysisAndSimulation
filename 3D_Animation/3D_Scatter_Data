@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Mar 22 13:13:39 2020
 
-@author: Egon Beyne
-"""
 
 import numpy as np
 import xarray as xr
@@ -14,7 +9,7 @@ import matplotlib.pyplot as plt
 def eta_to_altitude_arr(eta_array):
     
     # data
-    alt_dat = np.genfromtxt("Altitude_levels.txt", skip_header = 3,usecols = (1,2))
+    alt_dat = np.genfromtxt("Master program/Altitude_levels.txt", skip_header = 3,usecols = (1,2))
     
     # Grid points
     grid = alt_dat[:,0]
