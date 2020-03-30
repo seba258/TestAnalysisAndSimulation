@@ -30,11 +30,11 @@ countries the user can specify as outliers). Dark colours mean high pollution to
 summer = False  # used to select between pollution data for January and July
 
 # the altitude levels over which emissions will be considered. Check Altitude_levels.txt for conversion to km
-emission_levels = slice(1, 32)
+emission_levels = slice(1, 14)
 
 # the ratio for these countries will be set to zero. That is useful if some countries have such high or low ratios that
 # they make it impossible to see any differences between the other countries
-outlier_countries = []
+outlier_countries = ["Iraq", "Israel", "Latvia"]
 
 # the countries that are (partially) in the area for which we have data
 interesting = [
