@@ -7,8 +7,8 @@ from descartes import PolygonPatch
 from pprint import PrettyPrinter
 
 """
-Shows map with colour coding for the ground pollution over emission ratios. Only black carbon (BC) emissions and
-pollution are considered.
+Shows map with colour coding for the ground pollution over emission ratios per country. Only black carbon (BC) emissions
+and pollution are considered.
 The user can select between summer and winter (see boolean below) and the altitude ranges over which emissions are
 considered (e.g. to separate cruise and LTO emissions).
 The ratio of countries with no emissions over the considered altitude range is set to zero (the same is done for
@@ -30,7 +30,7 @@ countries the user can specify as outliers). Dark colours mean high pollution to
 summer = False  # used to select between pollution data for January and July
 
 # the altitude levels over which emissions will be considered. Check Altitude_levels.txt for conversion to km
-emission_levels = slice(1, 14)
+emission_levels = slice(1, 32)
 
 # the ratio for these countries will be set to zero. That is useful if some countries have such high or low ratios that
 # they make it impossible to see any differences between the other countries
@@ -190,7 +190,6 @@ def find_poll_em_ratios(countries):
                     poll_em_ratios[country] = [0, 0]
                 # select the correct values from the simulation data and add it to the counters. Sum over all parameters
                 # which are not explicitly specified (e.g. time or altitude)
-                # print(country, lon, lat, da_em.sel(lon=lon, lat=lat).sel(lev=slice(1, 8)).values)
                 poll_em_ratios[country][0] += np.sum(da_em.sel(lon=lon, lat=lat)
                                                      .sel(lev=emission_levels).values)  # select altitude range
                 poll_em_ratios[country][1] += np.sum(da_poll.sel(lon=lon, lat=lat)
@@ -238,7 +237,7 @@ def plot(countries, poll_em_ratios):
         # select the colour based on the value. Darker colours mean a higher ratio, i.e. more ground level pollution
         # for the same amount of emissions. The mapping from value to colour is based on the square root since that
         # makes the differences more obvious than a linear mapping
-        colour = 1 - np.sqrt((value - min_ratio) / (max_ratio - min_ratio))
+        colour = 1 - (value - min_ratio) / (max_ratio - min_ratio)  # 1 - np.sqrt((value - min_ratio) / (max_ratio - min_ratio))
         for region in countries[name]:  # loop over all regions that the country consists of
             ax.plot(*region.exterior.xy, alpha=0)  # plot the borders of the polygon
             ax.add_patch(PolygonPatch(region, facecolor=(colour, colour, colour)))  # fill the polygon with colour
