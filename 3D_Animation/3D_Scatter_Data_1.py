@@ -1,20 +1,16 @@
-from numpy.random import normal as normal
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
-import matplotlib
 import cartopy.io.shapereader as shpreader
-from shapely import geometry
 import xarray as xr
 import numpy as np
 from matplotlib import pyplot as plt
-from descartes import PolygonPatch
-from pprint import PrettyPrinter
+from mpl_toolkits.mplot3d import Axes3D
 
 nfr = 21  # Number of frames
 fps = 5  # Frame per sec
 
-# First part is all to obtain the country shapes: Copied from Jakob's code from the Country Group
+
+
+# ----------------------- Obtaining country shapes and plotting (Based on Jacob's code in country group) -------------------------------------------
 
 summer = False  # used to select between pollution data for January and July
 
@@ -107,8 +103,6 @@ shape_file = 'Shapefiles/CNTR_RG_20M_2016_4326.shp'
 poll_on_filename = "Soot.24h.{}.ON.nc4".format("JUL" if summer else "JAN")
 poll_off_filename = "Soot.24h.{}.OFF.nc4".format("JUL" if summer else "JAN")
 
-#em_filename = "AvEmFluxes.nc4"  # NetCDF file containing aircraft emissions
-
 
 # create a dictionary containing the polygons for all countries listed in "interesting". This function returns a
 # dictionary with the format "country_name: [list of polygons that it is made up of]"
@@ -137,113 +131,35 @@ def create_country_polygons():
 
     return country_dict
 
-
-# find the name of the country in which the coordinates (lon, lat) lie. Return None if it does not lie inside any
-# of the countries listed in "countries". "countries" has the same format as the return value of
-# create_country_polygons(), i.e. a dictionary with country names as keys and lists of polygons as values
-def find_country_name(countries, lon, lat):
-    for name in countries:  # loop over all countries
-        for region in countries[name]:  # loop over each polygon that the country is made of
-            if region.contains(geometry.Point(lon, lat)):  # check if the polygon contains the coordinates
-                return name
-    return None
-
-
-# find the ground level pollution (BC due to aircraft) to aircraft BC emission ratio for each country, and return it
-# in a dictionary.
-def find_poll_em_ratios(countries):
-    #DS = xr.open_dataset(em_filename)
-    #da_em = DS.BC  # select only the BC (black carbon) emissions since it is inert
-
-    #DS_on = xr.open_dataset(poll_on_filename)
-    #DS_off = xr.open_dataset(poll_off_filename)
-
-    # subtract pollution data without aircraft from pollution with aircraft to retrieve the pollution caused by
-    # aircraft only. Also, only select BC
-    #da_poll = DS_on.AerMassBC - DS_off.AerMassBC
-
-    # find the number of time steps in the data, to allow for time averaging of the pollution data
-    #t_steps = len(da_poll.coords['time'].values)
-
-    poll_em_ratios = {}
-    #lon_axis = da_em.coords['lon'].values  # the longitude values of the data grid
-    #lat_axis = da_em.coords['lat'].values  # the latitude values of the data grid
-
-    # this block fills poll_em_ratios in the format "country_name: [total_emissions, time_averaged_pollution]"
-    """
-    for lon in lon_axis:
-        for lat in lat_axis:  # loop over all cells in the data grid
-            country = find_country_name(countries, lon, lat)  # find the country the cell lies in
-            if country is not None:
-                if country not in poll_em_ratios:
-                    # if this is the first time the country is detected, set emission and pollution counters to 0
-                    poll_em_ratios[country] = [0, 0]
-                # select the correct values from the simulation data and add it to the counters. Sum over all parameters
-                # which are not explicitly specified (e.g. time or altitude)
-                #poll_em_ratios[country][0] += np.sum(da_em.sel(lon=lon, lat=lat)
-                                                     #.sel(lev=emission_levels).values)  # select altitude range
-                #poll_em_ratios[country][1] += np.sum(da_poll.sel(lon=lon, lat=lat)
-                                                     #.sel(lev=1, method='nearest').values) / t_steps
-    """
-    # list of all countries that were removed, either if they had no emissions (which would lead to division by zero)
-    # or because they were labelled as outliers. This list does not contain the countries for which we do not have
-    # any data at all
-    removed_countries = []
-
-    # calculate the ratios from the data found in the previous block to get the format "country_name: ratio"
-    for country in countries:
-        # avoid division by zero and check that the country isn't labeled as an outlier
-        #if poll_em_ratios[country][0] != 0 and not any([outlier in country for outlier in outlier_countries]):
-            #poll_em_ratios[country] = poll_em_ratios[country][1] / poll_em_ratios[country][0]
-        #else:
-        removed_countries.append(country)
-        poll_em_ratios[country] = 20
-
-    return poll_em_ratios, removed_countries
-
-
 # show map with colour coding for the pollution over emission ratios
-def plot(countries, poll_em_ratios):
-    ax = fig.add_subplot(111, projection='3d')#ax = plt.gca()  # get the axes of the current figure
-    ax.set_title("Ground Pollution/Emission Ratio\n\nConsidered chemical: BC | Time frame for pollution: " +
-                 ("July" if summer else "January") + " 2005 | Altitude levels for emission: " +
-                 str(emission_levels.start) + " to " + str(emission_levels.stop))
-    ax.set_xlabel("Removed countries: " + str(removed_countries))
+def plot(countries, ax):
 
-    # only display the region for which we have data
-    #ax.set_xlim([-30, 50])
-    #ax.set_ylim([30, 70])
+    # Iterate through all the countries
+    for name in countries:
 
-    ax.set_xlim(-30, 50)
-    ax.set_ylim(30, 70)
-    ax.set_zlim(0, 15)
+        # Select first row of country regions (Countries have different regions, but plotting only the first row gives the borders)
+        region = countries[name][0]
 
-    # find maximum and minimum ratio to scale the colour coding
-    min_ratio = min(poll_em_ratios.values())
-    max_ratio = max(poll_em_ratios.values())
+        # Convert POLYGON data to numpy arrays
+        points = np.array(region.exterior.coords.xy).T
 
-    # loop over all countries for which we have found a pollution over emission ratio. These are not necessarily the
-    # same countries as the ones in the polygon dictionary, since some countries (e.g. Vatican City) are too small
-    # to contain any data (the grid is too coarse). These countries will then not be plotted
-    for name in poll_em_ratios:
-        value = poll_em_ratios[name]  # retrieve the ratio for this country
+        # Get number of datapoints
+        N = len(points)
 
-        # select the colour based on the value. Darker colours mean a higher ratio, i.e. more ground level pollution
-        # for the same amount of emissions. The mapping from value to colour is based on the square root since that
-        # makes the differences more obvious than a linear mapping
-        colour = 1 #- (value - min_ratio) / (max_ratio - min_ratio)# 1 - np.sqrt((value - min_ratio) / (max_ratio - min_ratio))
-        #print(colour)
-        for region in countries[name]:  # loop over all regions that the country consists of
-            points = region
-            print(points)
-            print(name, np.array(points.exterior.coords.xy).T)
+        # Make a new array to accomodate z-coordinates
+        country_points = np.zeros((N,3))
 
+        # Add 2D coordinates to the 3D array
+        country_points[:,:2] = points
 
-            break
-            ax.plot(*region.exterior.xy, alpha=0)  # plot the borders of the polygon
-            ax.add_patch(PolygonPatch(region, facecolor= (0.99, 0.99, 0.99))) #(colour, colour, colour)))  # fill the polygon with colour
-        break
-    return ax
+        # Delete coordinates of the countries that are outside the simulation grid
+        country_points = country_points[(country_points[:,0] < 50) & (country_points[:,0] > -30) & (country_points[:,1] > 30) & (country_points[:,1] < 70)]
+
+        # Select columns for every coordinate
+        lon, lat, lev = country_points[:,0], country_points[:,1], country_points[:,2]
+
+        # Plot the countries
+        ax.plot(lon, lat, lev, color = 'black')
 
 
 # Convert eta levels to altitude
@@ -299,6 +215,7 @@ def Datapoints():
         sel[:, 1] = lat
         sel[:, 2] = lon
 
+
         # Make lists containing arrays with coordinates for 1 day
         xs.append(lon)
         ys.append(lat)
@@ -312,11 +229,13 @@ xs, ys, zs = Datapoints()
 
 # Make figure and axis for plot
 fig = plt.figure()
-#ax = fig.add_subplot(111, projection='3d')
+ax = fig.add_subplot(111, projection='3d')
 
+# Get the polygons for the countries
 countries = create_country_polygons()
-poll_em_ratios, removed_countries = find_poll_em_ratios(countries)
-ax = plot(countries,poll_em_ratios)
+
+# Add the country outlines to the plot
+plot(countries, ax)
 
 sct, = ax.plot([], [], [], "o", markersize=2)
 
