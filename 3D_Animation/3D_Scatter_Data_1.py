@@ -319,3 +319,7 @@ ax.set_zlim(0, 15)
 # Animation
 ani = animation.FuncAnimation(fig, update, nfr, fargs=(xs, ys, zs), interval=1000 / fps)
 plt.show()
+
+countries = create_country_polygons()
+poll_em_ratios, removed_countries = find_poll_em_ratios(countries)
+plot(countries,poll_em_ratios)
