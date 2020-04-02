@@ -237,10 +237,11 @@ def plot(countries, poll_em_ratios):
         # select the colour based on the value. Darker colours mean a higher ratio, i.e. more ground level pollution
         # for the same amount of emissions. The mapping from value to colour is based on the square root since that
         # makes the differences more obvious than a linear mapping
-        colour = 1 - (value - min_ratio) / (max_ratio - min_ratio)  # 1 - np.sqrt((value - min_ratio) / (max_ratio - min_ratio))
+        colour = 1 - (value - min_ratio) / (max_ratio - min_ratio)# 1 - np.sqrt((value - min_ratio) / (max_ratio - min_ratio))
+        print(colour)
         for region in countries[name]:  # loop over all regions that the country consists of
             ax.plot(*region.exterior.xy, alpha=0)  # plot the borders of the polygon
-            ax.add_patch(PolygonPatch(region, facecolor=(colour, colour, colour)))  # fill the polygon with colour
+            ax.add_patch(PolygonPatch(region, facecolor= (colour, colour, colour)))  # fill the polygon with colour
 
 
 pp = PrettyPrinter(indent=4)
