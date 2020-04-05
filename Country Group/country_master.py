@@ -256,21 +256,21 @@ def plot(countries, poll_em_data, mode, method):
 
     # post-process the data according to the selected statistic to get the format "country_name: value"
     if mode == PLOT_RATIO:
-        for country in data:
+        for country in poll_em_data:
             # avoid division by zero and check that the country isn't labeled as an outlier
             if data[country][0] != 0 and not any([outlier in country for outlier in outlier_countries]):
                 data[country] = data[country][1] / data[country][0]  # divide pollution by emissions
             else:
                 removed_countries.append(country)
-                data[country] = 0
+                del data[country]
     elif mode == PLOT_EMISSIONS or mode == PLOT_POLLUTION:
-        for country in data:
+        for country in poll_em_data:
             if not any([outlier in country for outlier in outlier_countries]):
                 # divide pollution or emissions (depending on the mode) by the area of the corresponding country
                 data[country] = data[country][0 if mode == PLOT_EMISSIONS else 1] / countries[country][1]
             else:
                 removed_countries.append(country)
-                data[country] = 0
+                del data[country]
     else:
         print("Error: Invalid mode for plotting")
 
@@ -295,13 +295,15 @@ def plot(countries, poll_em_data, mode, method):
         value = data[name]  # retrieve the value for this country
 
         # select the colour based on the value. Nonlinear mappings are used to make differences more apparent
-        if name not in removed_countries:
-            colour = plt.get_cmap(colormap)(sqrt_mapping(value, min_val, max_val))
-        else:  # if the country was removed from the data, select the corresponding colour
-            colour = removed_colour
+        colour = plt.get_cmap(colormap)(sqrt_mapping(value, min_val, max_val))
         for region in countries[name][0]:  # loop over all regions that the country consists of
             ax.plot(*region.exterior.xy, alpha=0)  # plot the borders of the polygon
             ax.add_patch(PolygonPatch(region, facecolor=colour))  # fill the polygon with colour
+
+    for name in removed_countries:
+        for region in countries[name][0]:  # loop over all regions that the country consists of
+            ax.plot(*region.exterior.xy, alpha=0)  # plot the borders of the polygon
+            ax.add_patch(PolygonPatch(region, facecolor=removed_colour))  # fill the polygon with colour
 
     return data, removed_countries
 
