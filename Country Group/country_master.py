@@ -23,13 +23,15 @@ considered (e.g. to separate cruise and LTO emissions). In addition to that, out
 local differences more visible. Countries who cause a division by zero during the calculation (e.g. if the emissions
 are zero in the ratio statistic) will automatically be removed. All removed countries are shown in black.
 
-In addition to a map displaying the data per country, the program outputs two indicators of spatial auto correlation:
-global and local Moran's I. Global statistics are printed as a single value, while local statistics are shown in a map
+In addition to a map displaying the data per country, the program outputs three indicators of spatial auto correlation:
+Geary's C and global and local Moran's I. Global statistics are printed as a single value, while local statistics are
+shown in a map
 
 @author Jakob
 """
 
 # TODO: Find neater solution for options
+# TODO: Add colour bar
 # Always keep in mind that the data for countries such as Russia and Algeria are only representative of the part of that
 # country which lies within the data region (and not of the entire country)
 # Also note that the pollution data is not influenced by areas outside of the data region (so the data does not show
@@ -310,8 +312,8 @@ def spatial_matrix(country_polygons):
 
 
 # return the global Moran's I for the data set. A positive value indicates that values are clustered, i.e. similar
-# values are close to each other on the map. A negative value means that similar values are far apart, and zero means
-# that values are randomly distributed
+# values are close to each other on the map (positive spatial auto correlation). A negative value means that similar
+# values are far apart, and zero means that values are randomly distributed (negative spatial auto correlation)
 def morans_i_global(country_polygons, data):
     w = spatial_matrix(country_polygons)
 
@@ -323,6 +325,20 @@ def morans_i_global(country_polygons, data):
             s += w[i, j] * (data_values[i] - mean) * (data_values[j] - mean)
 
     return len(data_values) / np.sum(w) * s / np.var(data_values)
+
+
+# return the Geary's C for the data set. A value between 0 and 1 indicates positive spatial auto correlation,
+# a value larger than 1 shows negative spatial auto correlation. More sensitive to local scales than Moran's I
+def gearys_c(country_polygons, data):
+    w = spatial_matrix(country_polygons)
+
+    data_values = list(data.values())
+    s = 0
+    for i in range(len(w)):
+        for j in range(len(w[i])):
+            s += w[i, j] * (data_values[i] - data_values[j]) ** 2
+
+    return (len(data_values) - 1) * s / (2 * np.sum(w) * np.var(data_values))
 
 
 # return the local Moran's I for each country in the data set. A positive value indicates that the country's value is
@@ -396,6 +412,11 @@ def plot(country_polygons, processed_data, add_title="", add_info="", show_remov
             ax.plot(*region.exterior.xy, alpha=0)  # plot the borders of the polygon
             ax.add_patch(PolygonPatch(region, facecolor=removed_colour))  # fill the polygon with colour
 
+    # TODO: Add colour bar
+    # gradient = mapping(np.linspace(min_val, max_val, 256), min_val, max_val)
+    # gradient = np.vstack((gradient, gradient))
+    # ax.imshow(gradient, aspect='auto', cmap=plt.get_cmap(colormap))
+
 
 print("Creating country polygons...")
 countries = create_country_polygons()
@@ -413,6 +434,7 @@ for country in removed_countries:
 
 print("Performing spatial analysis...")
 moran_global = morans_i_global(countries_with_data, processed_data)
+geary = gearys_c(countries_with_data, processed_data)
 moran_local = morans_i_local(countries_with_data, processed_data)
 
 print("Plotting the data...")
@@ -420,7 +442,8 @@ plot(countries, processed_data, mapping=sqrt_mapping)
 
 print("Plotting the results of the spatial analysis...")
 plt.figure()
-plot(countries, moran_local, add_title=" (Local Moran's I)", add_info="Global Moran's I: " + str(moran_global))
+plot(countries, moran_local, add_title=" (Local Moran's I)",
+     add_info="Global Moran's I: " + str(moran_global) + "\nGeary's C: " + str(geary))
 
 print("Finished.\n")
 
@@ -430,6 +453,7 @@ print("============= RESULTS ==============\n")
 print("These countries had no data available:", unavailable)
 print("These countries were removed:", removed_countries)
 print("Global Moran's I: ", moran_global)
+print("Geary's C: ", geary)
 print("Data:")
 pp.pprint(processed_data)
 print("Local Moran's I:")
