@@ -40,7 +40,7 @@ shown in a map
 # AvEmMasses.nc4 can also be used instead of AvEmFluxes.nc4, but it does not contain any information about differences
 # in altitudes. It merely contains the sum of all emissions over a certain grid cell
 
-summer = False  # used to select between pollution data for January and July
+summer = True   # used to select between pollution data for January and July
 
 # if set to False, the program looks for a file that already contains the pollution and emission data. If such a file
 # does not exist for the selected settings, it still recalculates the data
@@ -121,10 +121,10 @@ def create_country_polygons():
                     # add the area of the country which lies inside of the frame (in km^2)
                     country_poly[country_name][1] += abs(geod.geometry_area_perimeter(region)[0] / 1E6)
 
-                if isinstance(inside_frame, geometry.Polygon):
+                if isinstance(inside_frame, geometry.Polygon) and not inside_frame.is_empty:
                     add_region(inside_frame)
 
-                elif isinstance(inside_frame, geometry.MultiPolygon):
+                elif isinstance(inside_frame, geometry.MultiPolygon) and not inside_frame.is_empty:
                     for region in inside_frame:  # loop over all the polygons that make up the multipolygon
                         add_region(region)
 
