@@ -8,6 +8,7 @@ from descartes import PolygonPatch
 from pprint import PrettyPrinter
 from pyproj import Geod, Transformer
 import json
+import pathlib
 
 """
 Shows map with colour coding for different statistics relating to aircraft emissions and ground pollution due to
@@ -44,22 +45,22 @@ summer = True   # used to select between pollution data for January and July
 
 # if set to False, the program looks for a file that already contains the pollution and emission data. If such a file
 # does not exist for the selected settings, it still recalculates the data
-recalculate_data = True
+recalculate_data = False
 
-poll_file = "Soot.24h"  # the collection name for pollution (first part of the .nc4 filename)
+poll_file = "O3.24h"  # the collection name for pollution (first part of the .nc4 filename)
 
 # the chemicals to be taken into account for pollution and emissions, respectively. These need to be the names of the
 # data sets inside the .nc4 files you selected
-poll_chemical = "AerMassPOA"
-em_chemical = "FUELBURN"
+poll_chemical = "SpeciesConc_O3"
+em_chemical = "NO2"
 
-# the altitude levels over which emissions will be considered. Check Altitude_levels.txt for conversion to km
-# level 8: 1 km altitude, level 14: 2 km altitude
-emission_levels = slice(0, 8)
+# the altitude levels over which emissions will be considered (available from 0 to 32). Check Altitude_levels.txt for
+# conversion to km. Level 8: 1 km altitude, level 32: 13 km altitude
+emission_levels = slice(0, 32)
 
-# the value for these countries will be set to zero. That is useful if some countries have such high or low values that
+# these countries will be ignored in the calculation. That is useful if some countries have such high or low values that
 # they make it impossible to see any differences between the other countries
-outliers = ["Iraq", "Israel", "Latvia"]
+outliers = []  # ["Iraq", "Israel", "Latvia"]
 
 # available statistics for plotting
 PLOT_RATIO = "Ground Pollution/Emission Ratio"
@@ -74,21 +75,32 @@ METHOD_MEDIAN = "Median"
 
 method = METHOD_AVG
 
+show_spatial_analysis_map = False  # whether a second figure with spatial autocorrelation indicators should be displayed
+
 country_file = json.load(open("countries.json"))
 
 # data from 2016 for 1:20 million scale world map. More coarse or detailed maps are available. The coordinate
 # system is with longitude and latitude in degrees
 shape_file = 'Shapefiles/CNTR_RG_20M_2016_4326.shp'
 
+data_dir = pathlib.Path.cwd().parent / "Data"  # the path to the data folder
+
 # NetCDF files containing pollution with aircraft on and off, respectively
-poll_on_filename = poll_file + ".{}.ON.nc4".format("JUL" if summer else "JAN")
-poll_off_filename = poll_file + ".{}.OFF.nc4".format("JUL" if summer else "JAN")
+poll_on_filepath = data_dir / (poll_file + ".{}.ON.nc4".format("JUL" if summer else "JAN"))
+poll_off_filepath = data_dir / (poll_file + ".{}.OFF.nc4".format("JUL" if summer else "JAN"))
 
-em_filename = "AvEmFluxes.nc4"  # NetCDF file containing aircraft emissions
-em_multiplier = 10E5  # factor to increase values of emission data and avoid rounding errors due to machine precision
+em_filepath = data_dir / "AvEmFluxes.nc4"  # NetCDF file containing aircraft emissions
+em_multiplier = 10E6  # factor that can be used to increase values of emission data and avoid rounding errors
 
-colormap = "coolwarm"  # colour map
+colormap = "coolwarm"  # colour map. Google "color map matplotlib" to see the different options
 removed_colour = (0, 0, 0, 1)  # colour for removed countries
+
+
+# return the name of a cache file which was created using the same settings that the program is now run on. Will be used
+# to look for such a file or create one if it doesn't already exist
+def cache_filename():
+    return poll_file + "_" + ("JUL" if summer else "JAN") + "_" + poll_chemical + "_" + em_chemical + "_" +\
+           str(emission_levels.start) + "_" + str(emission_levels.stop)
 
 
 # create a dictionary containing the polygons for all countries listed in "interesting". This function returns an
@@ -158,44 +170,29 @@ def find_country_name(country_polygons, lon, lat):
 # in an ordered dictionary in the form "country_name: [emission, pollution]".
 def find_poll_em_data(country_polygons):
     if not recalculate_data:
-        try:  # try and find a buffer file for the given settings
-            poll_em_data = json.load(open("poll_em_buffer.json"))
+        try:  # try to find a cache file for the given settings
+            poll_em_data = json.load(open("Cache/{}.json".format(cache_filename())))
 
-            # retrieve the relevant parameters that were used to generate the buffer file
-            summer_saved = poll_em_data["summer"]
-            emission_levels_saved = poll_em_data["emission_levels"]
+            # check for any missing countries in the file
+            requested_keys = set(country_polygons.keys())
+            returned_keys = set(poll_em_data.keys())
+            unavailable = list(requested_keys.difference(returned_keys))
 
-            # if time of year and altitude ranges match
-            if summer_saved == summer and emission_levels_saved[0] == emission_levels.start and \
-                    emission_levels_saved[1] == emission_levels.stop:
+            print("Retrieved data from existing cache file")
 
-                # remove the items that stored parameters, since they are not needed anymore
-                del poll_em_data["summer"]
-                del poll_em_data["emission_levels"]
+            # return data, along with the names of all missing countries
+            return OrderedDict(sorted(poll_em_data.items(), key=lambda t: t[0])), unavailable  # continue here
 
-                # check for any missing countries in the file
-                requested_keys = set(country_polygons.keys())
-                returned_keys = set(poll_em_data.keys())
-                unavailable = list(requested_keys.difference(returned_keys))
-
-                print("Retrieved data from existing file")
-
-                # return data, along with the names of all missing countries
-                return OrderedDict(sorted(poll_em_data.items(), key=lambda t: t[0])), unavailable  # continue here
-
-            else:  # if the settings in the buffer file don't match the required settings
-                print("Parameters in buffer file don't match user input. Recalculating data...")
-
-        except (FileNotFoundError, KeyError):  # in case there is no buffer file
-            print("No valid file found, recalculating data...")
+        except (FileNotFoundError, KeyError):  # in case there is no cache file
+            print("No valid cache file found, recalculating data...")
 
     # anything from here onwards is only executed in case the data needs to be recalculated
 
-    DS = xr.open_dataset(em_filename)
+    DS = xr.open_dataset(em_filepath)
     da_em = getattr(DS, em_chemical) * em_multiplier  # select only the specified emissions
 
-    DS_on = xr.open_dataset(poll_on_filename)
-    DS_off = xr.open_dataset(poll_off_filename)
+    DS_on = xr.open_dataset(poll_on_filepath)
+    DS_off = xr.open_dataset(poll_off_filepath)
 
     # subtract pollution data without aircraft from pollution with aircraft to retrieve the pollution caused by
     # aircraft only. Also, only select BC
@@ -220,16 +217,9 @@ def find_poll_em_data(country_polygons):
                 poll_em_data[country][1].append(float(np.sum(da_poll.sel(lon=lon, lat=lat)
                                                        .sel(lev=1, method='nearest').values)))
 
-    # write the data into a buffer file, to speed up loading next time the program is run
-    with open("poll_em_buffer.json", "w") as outfile:
-        data_saved = poll_em_data.copy()  # make a copy so that the original remains unchanged
-
-        # add items describing the settings used to generate the data
-        data_saved["summer"] = summer
-        data_saved["emission_levels"] = [emission_levels.start, emission_levels.stop]
-
-        # write the file
-        json.dump(data_saved, outfile, indent=4)
+    # write the data into a cache file, to speed up loading next time the program is run
+    with open("Cache/{}.json".format(cache_filename()), "w") as outfile:
+        json.dump(poll_em_data, outfile, indent=4)
 
     # check for any missing countries in the file
     requested_keys = set(country_polygons.keys())
@@ -448,10 +438,11 @@ moran_local = morans_i_local(countries_with_data, processed_data)
 print("Plotting the data...")
 plot(countries, processed_data, mapping=sqrt_mapping)
 
-print("Plotting the results of the spatial analysis...")
-plt.figure()
-plot(countries, moran_local, add_title=" (Local Moran's I)",
-     add_info="Global Moran's I: " + str(moran_global) + "\nGeary's C: " + str(geary))
+if show_spatial_analysis_map:
+    print("Plotting the results of the spatial analysis...")
+    plt.figure()
+    plot(countries, moran_local, add_title=" (Local Moran's I)",
+         add_info="Global Moran's I: " + str(moran_global) + "\nGeary's C: " + str(geary))
 
 print("Finished.\n")
 
