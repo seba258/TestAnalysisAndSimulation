@@ -40,11 +40,18 @@ shown in a map
 # AvEmMasses.nc4 can also be used instead of AvEmFluxes.nc4, but it does not contain any information about differences
 # in altitudes. It merely contains the sum of all emissions over a certain grid cell
 
-summer = False  # used to select between pollution data for January and July
+summer = True   # used to select between pollution data for January and July
 
 # if set to False, the program looks for a file that already contains the pollution and emission data. If such a file
 # does not exist for the selected settings, it still recalculates the data
-recalculate_data = False
+recalculate_data = True
+
+poll_file = "Soot.24h"  # the collection name for pollution (first part of the .nc4 filename)
+
+# the chemicals to be taken into account for pollution and emissions, respectively. These need to be the names of the
+# data sets inside the .nc4 files you selected
+poll_chemical = "AerMassPOA"
+em_chemical = "FUELBURN"
 
 # the altitude levels over which emissions will be considered. Check Altitude_levels.txt for conversion to km
 # level 8: 1 km altitude, level 14: 2 km altitude
@@ -74,8 +81,8 @@ country_file = json.load(open("countries.json"))
 shape_file = 'Shapefiles/CNTR_RG_20M_2016_4326.shp'
 
 # NetCDF files containing pollution with aircraft on and off, respectively
-poll_on_filename = "Soot.24h.{}.ON.nc4".format("JUL" if summer else "JAN")
-poll_off_filename = "Soot.24h.{}.OFF.nc4".format("JUL" if summer else "JAN")
+poll_on_filename = poll_file + ".{}.ON.nc4".format("JUL" if summer else "JAN")
+poll_off_filename = poll_file + ".{}.OFF.nc4".format("JUL" if summer else "JAN")
 
 em_filename = "AvEmFluxes.nc4"  # NetCDF file containing aircraft emissions
 em_multiplier = 10E5  # factor to increase values of emission data and avoid rounding errors due to machine precision
@@ -121,10 +128,10 @@ def create_country_polygons():
                     # add the area of the country which lies inside of the frame (in km^2)
                     country_poly[country_name][1] += abs(geod.geometry_area_perimeter(region)[0] / 1E6)
 
-                if isinstance(inside_frame, geometry.Polygon):
+                if isinstance(inside_frame, geometry.Polygon) and not inside_frame.is_empty:
                     add_region(inside_frame)
 
-                elif isinstance(inside_frame, geometry.MultiPolygon):
+                elif isinstance(inside_frame, geometry.MultiPolygon) and not inside_frame.is_empty:
                     for region in inside_frame:  # loop over all the polygons that make up the multipolygon
                         add_region(region)
 
@@ -185,14 +192,14 @@ def find_poll_em_data(country_polygons):
     # anything from here onwards is only executed in case the data needs to be recalculated
 
     DS = xr.open_dataset(em_filename)
-    da_em = DS.BC * em_multiplier  # select only the BC (black carbon) emissions since it is inert
+    da_em = getattr(DS, em_chemical) * em_multiplier  # select only the specified emissions
 
     DS_on = xr.open_dataset(poll_on_filename)
     DS_off = xr.open_dataset(poll_off_filename)
 
     # subtract pollution data without aircraft from pollution with aircraft to retrieve the pollution caused by
     # aircraft only. Also, only select BC
-    da_poll = DS_on.AerMassBC - DS_off.AerMassBC
+    da_poll = getattr(DS_on, poll_chemical) - getattr(DS_off, poll_chemical)
 
     poll_em_data = {}
     lon_axis = da_em.coords['lon'].values  # the longitude values of the data grid
@@ -375,9 +382,10 @@ def log_mapping(val, min_val, max_val):
 # show map with colour coding for the pollution and/or emission data
 def plot(country_polygons, processed_data, add_title="", add_info="", show_removed=False, mapping=lin_mapping):
     ax = plt.gca()  # get the axes of the current figure
-    ax.set_title(mode + add_title + "\n\nConsidered chemical: BC | Time frame for pollution: " +
-                 ("July" if summer else "January") + " 2005 | Altitude levels for emission: " +
-                 str(emission_levels.start) + " to " + str(emission_levels.stop) + " | Averaging method: " + method)
+    ax.set_title(mode + add_title + "\n\nPollution chemical: " + poll_chemical + " | Emission chemical: " +
+                 em_chemical + " | Time frame for pollution: " + ("July" if summer else "January") +
+                 " 2005 | Altitude levels for emission: " + str(emission_levels.start) + " to " +
+                 str(emission_levels.stop) + " | Averaging method: " + method)
 
     countries_with_poly = set(country_polygons.keys())
     countries_with_data = set(processed_data.keys())
