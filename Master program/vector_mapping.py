@@ -4,7 +4,6 @@ import cartopy.crs as ccrs
 from netCDF4 import Dataset as netcdf_dataset
 from matplotlib import animation
 
-test = '../Data/wind/MERRA2.20050111.A3dyn.05x0625.EU.nc4'
 month = '01'
 day = '20'
 
@@ -32,11 +31,7 @@ def unpack_veldata(time):
     return u, v
 
 
-def main():
-    fig = plt.figure()
-    ax = plt.axes(projection=ccrs.PlateCarree())
-    ax.coastlines(resolution='50m')
-
+def plot_wind():
     X, Y = unpack_posdata()
     U, V = unpack_veldata(0)
 
@@ -53,7 +48,9 @@ def main():
     # you need to set blit=False, or the first set of arrows never gets cleared on subsequent frames
     anim = animation.FuncAnimation(fig, update_quiver, fargs=(Q, X, Y), interval=1000, blit=False)
 
-    plt.show()
 
+fig = plt.figure()
+ax = plt.axes(projection=ccrs.PlateCarree())
+ax.coastlines(resolution='50m')
+plot_wind()
 
-main()
