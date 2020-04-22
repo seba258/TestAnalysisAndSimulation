@@ -1,58 +1,47 @@
-import json
-import xarray as xr
+import country_tools as ct
 import numpy as np
 from matplotlib import pyplot as plt
 
-# WARNING: This piece of code is not used for anything at the moment and only kept for future reference. Check out
-# country_master.py for the useful code
-# TODO: Average or sum pollution values over time
-# TODO: Verify that all grid cells are indeed the same size
-# TODO: Draw map with colour coding for the pollution/emission ratio
-# TODO: Compare winter data with summer data
+summer = True   # used to select between pollution data for January and July
 
-poll_on_filename = "Soot.24h.JAN.ON.nc4"
-poll_off_filename = "Soot.24h.JAN.OFF.nc4"
-em_filename = "AvEmMasses.nc4"
-countries_filename = "country_coords.txt"
+poll_coll = "Soot.24h"  # the collection name for pollution (first part of the .nc4 filename)
 
-print("Loading files...")
+# the chemicals to be taken into account for pollution and emissions, respectively. These need to be the names of the
+# data sets inside the .nc4 files you selected
+poll_chemical = "AerMassBC"
+em_chemical = "BC"
 
-with open(countries_filename) as country_file:
-    country_coords = json.loads(country_file.read())
+# the altitude levels over which emissions will be considered (available from 0 to 32). Check Altitude_levels.txt for
+# conversion to km. Level 8: 1 km altitude, level 32: 13 km altitude
+emission_levels = slice(0, 32)
 
-DS = xr.open_dataset(em_filename)
-da_em = DS.BC
+# these countries will be ignored in the calculation. That is useful if some countries have such high or low values that
+# they make it impossible to see any differences between the other countries
+outliers = []  # ["Iraq", "Israel", "Latvia"]
 
-DS_on = xr.open_dataset(poll_on_filename)
-DS_off = xr.open_dataset(poll_off_filename)
-da_poll = DS_on.AerMassBC - DS_off.AerMassBC
-t_steps = len(da_poll.coords['time'].values)
+method = ct.METHOD_AVG  # the way that the data is combined inside one country (median or area-weighted average)
 
-print("Processing...")
-data = {}
+print("Creating country polygons...")
+countries = ct.create_country_polygons()
 
-for country in country_coords:
-    data[country] = np.zeros(2)
-    for cell in np.array(country_coords[country]):
-        data[country][0] += np.sum(da_em.sel(lon=cell[0], lat=cell[1]).values)
-        data[country][1] += np.sum(da_poll.sel(lon=cell[0], lat=cell[1]).sel(lev=1, method='nearest').values) / t_steps
+print("Retrieving raw pollution and emission data...")
+raw_data, _ = ct.find_poll_em_data2(countries, poll_coll, em_chemical, poll_chemical,
+                                   emission_levels, summer, recalculate_country_cells=True)
+
+print("Processing the data...")
+em_data, _ = ct.process_data(countries, raw_data, method=method, mode=ct.PLOT_EMISSIONS, multiplier=1E20)
+poll_data, _ = ct.process_data(countries, raw_data, method=method, mode=ct.PLOT_POLLUTION, multiplier=1E9)
 
 print("Plotting...")
-plt.subplot(211)
-values = np.array(list(data.values()))
-plt.scatter(values[:, 0], values[:, 1], cmap='hsv', c=np.random.rand(len(data)))
+em_values = np.array(list(em_data.values()))
+poll_values = np.array(list(poll_data.values()))
+plt.scatter(em_values, poll_values, cmap='hsv', c=np.random.rand(len(em_values)))
 
-for country in data:
-    plt.annotate(country, data[country])
+for country in em_data:
+    plt.annotate(country, [em_data[country], poll_data[country]])
 
 plt.xlabel("BC Emission Mass from Aviation [kg/day]")
 plt.ylabel("Average Ground-Level BC Aerosol from Aviation [$\mu/m^3$]")
-
-plt.subplot(212)
-plt.bar(range(len(data)), values[:, 1] / values[:, 0], align='center')
-plt.xticks(range(len(data)), data.keys())
-
-plt.ylabel("BC Pollution/Emission")
 
 print("Finished")
 plt.show()

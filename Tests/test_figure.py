@@ -18,13 +18,13 @@ ax.coastlines(resolution='50m')  # draw coastlines with given resolution
 # plot data
 ax.pcolormesh(da.lon, da.lat, pm25_gd_15, transform=proj)
 ax.pcolormesh(da.lon, da.lat, pm25_gd_17, transform=proj)
-pm25_gd_15.plot()
+pm25_gd_15.plot_map()
 
 ax = plt.axes([0.1, 0.05, 0.8, 0.4], projection=proj)  # create axes
 ax.coastlines(resolution='50m')  # draw coastlines with given resolution
 
 # plot data
 ax.pcolormesh(da.lon, da.lat, pm25_gd_17, transform=proj)
-pm25_gd_17.plot()
+pm25_gd_17.plot_map()
 
 plt.show()

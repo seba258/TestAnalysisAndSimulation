@@ -26,5 +26,5 @@ for frame in frames:
 average /= len(frames) + 1
 ax = plt.axes(projection=proj)  # create axes
 ax.coastlines(resolution='50m')  # draw coastlines with given resolution
-average.plot()
+average.plot_map()
 plt.show()

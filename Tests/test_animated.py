@@ -21,5 +21,5 @@ for frame in frames:
     ax = plt.axes(projection=proj)  # create axes
     ax.coastlines(resolution='50m')  # draw coastlines with given resolution
     pm25_gd = da.sel(lev=1, method='nearest').sel(time=str(frame))[0]  # select appropriate level (ground) and day
-    pm25_gd.plot(vmin=0, vmax=130)
+    pm25_gd.plot_map(vmin=0, vmax=130)
     plt.savefig(output_dir + filename + "_" + str(frame) + ".png")

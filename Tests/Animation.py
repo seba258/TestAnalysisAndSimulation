@@ -76,11 +76,11 @@ ax = plt.axes(projection=proj)  # create axes
 ax.coastlines(resolution='50m')  # draw coastlines with given resolution
 
 # Set color and scale of plot
-cax = da[0,:,:].plot(add_colorbar=True,
-        cmap = 'coolwarm',
-        vmin = da.values.min(),
-        vmax = da.values.max(),
-        cbar_kwargs = {'extend':'neither'})
+cax = da[0,:,:].plot_map(add_colorbar=True,
+                         cmap = 'coolwarm',
+                         vmin = da.values.min(),
+                         vmax = da.values.max(),
+                         cbar_kwargs = {'extend':'neither'})
 
 # Animation function
 def animate(frame):
