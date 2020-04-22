@@ -35,10 +35,6 @@ shown in a map
 
 summer = True   # used to select between pollution data for January and July
 
-# if set to False, the program looks for a file that already contains the pollution and emission data. If such a file
-# does not exist for the selected settings, it still recalculates the data
-recalculate_data = False
-
 poll_coll = "Soot.24h"  # the collection name for pollution (first part of the .nc4 filename)
 
 # the chemicals to be taken into account for pollution and emissions, respectively. These need to be the names of the
@@ -67,7 +63,7 @@ countries = ct.create_country_polygons()
 countries_with_data = countries.copy()  # the countries which can be used for analysis later on
 
 print("Retrieving raw pollution and emission data...")
-raw_data, unavailable = ct.find_poll_em_data(countries, recalculate_data, poll_coll, em_chemical, poll_chemical,
+raw_data, unavailable = ct.find_poll_em_data(countries, poll_coll, em_chemical, poll_chemical,
                                              emission_levels, summer)
 for country in unavailable:
     del countries_with_data[country]

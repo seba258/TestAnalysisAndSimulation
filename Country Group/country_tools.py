@@ -112,7 +112,7 @@ def find_country_name(country_polygons, lon, lat):
 
 # find the ground level pollution due to aircraft and aircraft emission data for each country, and return it
 # in an ordered dictionary in the form "country_name: [emission, pollution]".
-def find_poll_em_data2(country_polygons, poll_coll, em_chemical, poll_chemical, emission_levels, summer,
+def find_poll_em_data(country_polygons, poll_coll, em_chemical, poll_chemical, emission_levels, summer,
                       em_filename="AvEmFluxes.nc4", data_dir=pathlib.Path.cwd().parent / "Data",
                       recalculate_country_cells=False):
 
@@ -167,83 +167,6 @@ def find_poll_em_data2(country_polygons, poll_coll, em_chemical, poll_chemical, 
             poll_em_data[country][0].append(np.sum(da_em.sel(lon=cell[0], lat=cell[1]).sel(lev=emission_levels).values))
             poll_em_data[country][1].append(np.sum(da_poll.sel(lon=cell[0], lat=cell[1])
                                                    .sel(lev=1, method='nearest').values) / n_timesteps)
-
-    # check for any missing countries in the file
-    requested_keys = set(country_polygons.keys())
-    returned_keys = set(poll_em_data.keys())
-    unavailable = list(requested_keys.difference(returned_keys))
-
-    # return data, along with the names of all missing countries
-    return OrderedDict(sorted(poll_em_data.items(), key=lambda t: t[0])), unavailable
-
-
-# find the ground level pollution due to aircraft and aircraft emission data for each country, and return it
-# in an ordered dictionary in the form "country_name: [emission, pollution]".
-def find_poll_em_data(country_polygons, recalculate_data, poll_coll, em_chemical, poll_chemical, emission_levels,
-                      summer, em_filename="AvEmFluxes.nc4", data_dir=pathlib.Path.cwd().parent / "Data"):
-    if not recalculate_data:
-        try:  # try to find a cache file for the given settings
-            poll_em_data = json.load(open("Cache/{}.json".format(cache_filename(poll_coll, summer, poll_chemical,
-                                                                                em_chemical, emission_levels))))
-
-            # check for any missing countries in the file
-            requested_keys = set(country_polygons.keys())
-            returned_keys = set(poll_em_data.keys())
-            unavailable = list(requested_keys.difference(returned_keys))
-
-            print("Retrieved data from existing cache file")
-
-            # return data, along with the names of all missing countries
-            return OrderedDict(sorted(poll_em_data.items(), key=lambda t: t[0])), unavailable  # continue here
-
-        except (FileNotFoundError, KeyError):  # in case there is no cache file
-            print("No valid cache file found, recalculating data...")
-
-    # anything from here onwards is only executed in case the data needs to be recalculated
-
-    em_filepath = data_dir / em_filename
-    poll_on_filepath = data_dir / data_filename(poll_coll, summer, True)
-    poll_off_filepath = data_dir / data_filename(poll_coll, summer, False)
-
-    DS = xr.open_dataset(em_filepath)
-    da_em = getattr(DS, em_chemical)  # select only the specified emissions
-
-    DS_on = xr.open_dataset(poll_on_filepath)
-    DS_off = xr.open_dataset(poll_off_filepath)
-
-    # subtract pollution data without aircraft from pollution with aircraft to retrieve the pollution caused by
-    # aircraft only. Also, only select the appropriate chemical
-    da_poll = getattr(DS_on, poll_chemical) - getattr(DS_off, poll_chemical)
-
-    poll_em_data = {}
-    lon_axis = da_em.coords['lon'].values  # the longitude values of the data grid
-    lat_axis = da_em.coords['lat'].values  # the latitude values of the data grid
-
-    # number of time steps in the pollution file
-    n_timesteps = 1
-    if "time" in da_poll.coords:
-        n_timesteps = len(da_poll.coords["time"].values)
-
-    # this block fills poll_em_data in the format "country_name: [total_emissions, time_averaged_pollution]"
-    for lon in lon_axis:
-        for lat in lat_axis:  # loop over all cells in the data grid
-            country = find_country_name(country_polygons, lon, lat)  # find the country the cell lies in
-            if country is not None:
-                if country not in poll_em_data:
-                    # if this is the first time the country is detected, set emission and pollution counters to 0
-                    poll_em_data[country] = [[], []]
-                # select the correct values from the simulation data and add it to the lists. Sum over all parameters
-                # which are not explicitly specified (i.e. time in this case). Also select correct altitudes for both
-                # emission and pollution. For pollution, divide by the number of time steps to get the time average
-                poll_em_data[country][0].append(float(np.sum(da_em.sel(lon=lon, lat=lat)
-                                                             .sel(lev=emission_levels).values)))
-                poll_em_data[country][1].append(float(np.sum(da_poll.sel(lon=lon, lat=lat)
-                                                             .sel(lev=1, method='nearest').values)) / n_timesteps)
-
-    # write the data into a cache file, to speed up loading next time the program is run
-    with open("Cache/{}.json".format(cache_filename(poll_coll, summer, poll_chemical, em_chemical, emission_levels)),
-              "w") as outfile:
-        json.dump(poll_em_data, outfile, indent=4)
 
     # check for any missing countries in the file
     requested_keys = set(country_polygons.keys())
