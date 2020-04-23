@@ -40,7 +40,7 @@ poll_coll = "O3.24h"  # the collection name for pollution (first part of the .nc
 # the chemicals to be taken into account for pollution and emissions, respectively. These need to be the names of the
 # data sets inside the .nc4 files you selected
 poll_chemical = "SpeciesConc_O3"
-em_chemical = "NO2"
+em_chemical = "FUELBURN"
 
 # the altitude levels over which emissions will be considered (available from 0 to 32). Check Altitude_levels.txt for
 # conversion to km. Level 8: 1 km altitude, level 32: 13 km altitude

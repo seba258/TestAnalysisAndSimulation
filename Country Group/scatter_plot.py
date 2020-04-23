@@ -49,8 +49,9 @@ for country in em_data:
     plt.annotate(country, [em_data[country], poll_data[country]])
 
 plt.title(ct.generate_sub_title(poll_chemical, em_chemical, summer, emission_levels, method))
-plt.xlabel(em_chemical + " Emission Mass from Aviation")
-plt.ylabel("Average Ground-Level {} from Aviation".format(poll_chemical))
+plt.xlabel(em_chemical + " Emission Mass from Aviation $[kg/day/km^2]$")
+plt.ylabel(("Average Ground-Level {} from Aviation " + "$[\mu g/m/km^2]$"
+            if poll_chemical != "SpeciesConc_O3" else "$[mol/(mol of dry air)/km^2]$").format(poll_chemical))
 
 print("Finished")
 plt.show()
