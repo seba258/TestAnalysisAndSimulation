@@ -44,18 +44,18 @@ em_chemical = "NO2"
 
 # the altitude levels over which emissions will be considered (available from 0 to 32). Check Altitude_levels.txt for
 # conversion to km. Level 8: 1 km altitude, level 32: 13 km altitude
-emission_levels = slice(0, 32)
+emission_levels = slice(0, 8)
 
 # these countries will be ignored in the calculation. That is useful if some countries have such high or low values that
 # they make it impossible to see any differences between the other countries
-outliers = []  # ["Iraq", "Israel", "Latvia"]
+outliers = ["Iraq", "Israel", "Latvia"]
 
 mode = ct.PLOT_RATIO  # the statistic which is plotted (emissions, pollution or ratio between them)
 method = ct.METHOD_AVG  # the way that the data is combined inside one country (median or area-weighted average)
 
 show_spatial_analysis_map = False  # whether a second figure with spatial autocorrelation indicators should be displayed
 
-colormap = "coolwarm"  # the color map used. Google "matplotlib color maps" to see the options
+colormap = "Blues"  # the color map used. Google "matplotlib color maps" to see the options
 
 
 print("Creating country polygons...")
@@ -69,7 +69,7 @@ for country in unavailable:
     del countries_with_data[country]
 
 print("Processing the data...")
-processed_data, removed_countries = ct.process_data(countries, raw_data, method=method, mode=mode)
+processed_data, removed_countries = ct.process_data(countries, raw_data, method=method, mode=mode, outliers=outliers)
 for country in removed_countries:
     del countries_with_data[country]
 
