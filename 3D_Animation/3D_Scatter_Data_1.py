@@ -159,7 +159,7 @@ def plot(countries, ax):
         lon, lat, lev = country_points[:,0], country_points[:,1], country_points[:,2]
 
         # Plot the countries
-        ax.plot(lon, lat, lev, color = 'black')
+        ax.plot_map(lon, lat, lev, color ='black')
 
 
 # Convert eta levels to altitude
@@ -237,7 +237,7 @@ countries = create_country_polygons()
 # Add the country outlines to the plot
 plot(countries, ax)
 
-sct, = ax.plot([], [], [], "o", markersize=2)
+sct, = ax.plot_map([], [], [], "o", markersize=2)
 
 # Function to plot in animation
 def update(ifrm, xa, ya, za):

@@ -23,7 +23,7 @@ av_data = pm25_gd_on - pm25_gd_off
 
 # plot data
 #ax.pcolormesh(da_off.lon, da_off.lat, av_data, transform=proj)
-av_data.plot(add_colorbar=True, cmap='coolwarm', vmin=av_data.values.min(), vmax=av_data.values.max(),
-            cbar_kwargs={'extend': 'neither'})
+av_data.plot_map(add_colorbar=True, cmap='coolwarm', vmin=av_data.values.min(), vmax=av_data.values.max(),
+                 cbar_kwargs={'extend': 'neither'})
 
 plt.show()
