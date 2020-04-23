@@ -317,9 +317,12 @@ def log_mapping(val, min_val, max_val):
     return np.log((val - min_val) / (max_val - min_val) + 1) / np.log(2)
 
 
-def generate_sub_title(poll_chemical, em_chemical, summer, emission_levels, method):
-    return "Pollution chemical: " + poll_chemical + " | Emission chemical: " + em_chemical + \
-           " | Time frame for pollution: " + ("July" if summer else "January") + \
+def generate_sub_title(poll_chemical, em_chemical, summer, emission_levels, method, mode=PLOT_RATIO):
+    chemical_decription = ("Pollution chemical: " + poll_chemical + " | ")\
+        if mode == PLOT_RATIO or mode == PLOT_POLLUTION else ""
+    chemical_decription += ("Emission chemical: " + em_chemical + " | ")\
+        if mode == PLOT_RATIO or mode == PLOT_EMISSIONS else ""
+    return chemical_decription + "Time frame for pollution: " + ("July" if summer else "January") +\
            " 2005 | Altitude levels for emission: " + str(emission_levels.start) + " to " + \
            str(emission_levels.stop) + " | Averaging method: " + method
 
@@ -330,7 +333,7 @@ def plot_map(country_polygons, processed_data, mode, poll_chemical, em_chemical,
              removed_color=(0, 0, 0, 1)):
     ax = plt.gca()  # get the axes of the current figure
     ax.set_title(mode + add_title + "\n\n" +
-                 generate_sub_title(poll_chemical, em_chemical, summer, emission_levels, method))
+                 generate_sub_title(poll_chemical, em_chemical, summer, emission_levels, method, mode))
 
     countries_with_poly = set(country_polygons.keys())
     countries_with_data = set(processed_data.keys())

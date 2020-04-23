@@ -2,6 +2,12 @@ import country_tools as ct
 import numpy as np
 from matplotlib import pyplot as plt
 
+"""
+Scatter plot of all countries in the region, with emission and pollution axes
+
+@author Jakob Schoser
+"""
+
 summer = True   # used to select between pollution data for January and July
 
 poll_coll = "Soot.24h"  # the collection name for pollution (first part of the .nc4 filename)
